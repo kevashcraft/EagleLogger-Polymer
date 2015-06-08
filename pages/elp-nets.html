@@ -1,0 +1,85 @@
+<dom-module id="elp-nets">
+<style>
+	:host {
+		display: block;
+	}
+	paper-fab {
+		position: fixed;
+		bottom: 25px;
+		right: 25px;
+		background-color: var(--page-fab-color);
+		transition: all .2s ease;
+	}
+	paper-fab:hover {
+		background-color: var(--page-fab-color-hover);
+	}
+
+</style>
+<template>
+	<template is="dom-repeat" items="{{nets}}">
+		<el-net
+			on-tap="netOpen"
+			net="{{item}}"
+		></el-net>
+	</template>
+	<paper-fab icon="add" on-tap="netStart" hidden="{{_calculateHidden('startnet')}}"></paper-fab>
+	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'elp-nets',
+		properties: {
+			info: {
+				type: Object,
+				value: {
+					title: 'Nets',
+					url: '/nets'
+				}
+			},
+		},
+		behaviors: [
+			Polymer.ELBehavior
+		],
+		ready: function() {
+			console.log("I'm REady!");
+			this.jaxson('nets/list_all');
+		},
+		netOpen: function(event) {
+			var target = findTarget(event, 'el-net');
+			netId = target.net.id;
+			el.setPage('net', 'push');
+		},
+		netStart: function() {
+			netId = 'new';
+			el.setPage('net', 'push');
+		},
+		setupSSE: function() {
+			this.sse = new EventSource('/jaxson/events/nets_listener?net=' + this.nets[0].id + '&active=' + this.nets[0].active);
+			this.sse.addEventListener('nets', function(event){
+				this.nets = JSON.parse(event.data);
+			}.bind(this));
+		},
+		_calculateHidden: function(menuItem) {
+			if (!el.user) return true;
+			switch(menuItem) {
+				case 'startnet':
+					return !el.user.ncs;
+					break;
+			}
+		},
+
+		_jaxson: function(info) {
+			switch(info.subject) {
+				case 'nets':
+					switch(info.action) {
+						case 'list_all':
+							this.nets = info.nets;
+							this.setupSSE();
+							break;
+					}
+					break;
+			}
+		},
+	});
+</script>

@@ -1,0 +1,60 @@
+<script>
+Polymer.ELRouter = {
+	router: function() {
+		var location = window.location.pathname.split('/');
+		var page = location[1].toLowerCase();
+		this.setPage(page, 'replace');
+		this.statelyListen();
+	},
+	setPage: function(page, action, router) {
+
+		if(ce) {
+			console.log("ce",ce);
+			if(ce.sse)
+				console.log("ce.sse",ce.sse);
+		}
+		if(ce && ce.sse)
+			ce.sse.close();
+
+		el.$.header.innerHTML = '';
+		if(page == '') page = 'home';
+
+
+		
+		if(page == 'login' && el.user.token)
+			page = 'dashboard';
+
+		el.searchDisable();
+
+		var page = 'elp-' + page;
+		var elem = ce = document.createElement(page);
+		this.stately({
+			element: page,
+			title: elem.info.title,
+			url: elem.info.url,
+		}, action, elem);
+
+	},
+	stately: function(o, action, elem) {
+		if(action == 'pop')
+			var elem = document.createElement(o.element);
+
+		document.title = o.title + " | Eagle Logger";
+
+		if(action == 'push')
+			window.history.pushState(o, o.title, o.url);
+		else if(action == 'replace')
+			window.history.replaceState(o, o.title, o.url);
+
+
+		el.$.content.innerHTML = '';
+
+		el.$.content.appendChild(elem);
+	},
+	statelyListen: function() {
+		window.addEventListener('popstate', function(e){
+			this.stately(e.state, 'pop');
+		}.bind(this));
+	},
+}
+</script>

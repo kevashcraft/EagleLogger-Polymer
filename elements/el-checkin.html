@@ -1,0 +1,151 @@
+<dom-module id="el-checkin">
+<style>
+	:host {
+		display: block;
+		margin: 15px;
+	}
+	paper-material {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px 25px;
+		background-color: var(--page-color-one);
+		transition: color .2s ease;
+		text-align: center;
+		font-size: 21px;
+	}
+
+	paper-material:hover {
+		cursor: pointer;
+		background-color: var(--page-color-one-hover);
+	}
+
+	.traffic {
+		color: red;
+	}
+	.lt {
+		width: 50px;
+		text-align: left;
+	}
+	.callsign {
+		width: 100px;
+		color: var(--page-font-color-two);
+	}
+	.name {
+		width: 100px;
+	}
+	.location {
+		width: 200px;
+		font-size: 20px;
+	}
+	.jobs {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		text-align: center;
+		width: 200px;
+		font-size: 16px;
+	}
+	.jobs span {
+		display: block;
+	}
+	paper-icon-button {
+		opacity: .2;
+		transition: all .3s ease;
+	}
+	paper-icon-button:hover {
+		color: red;
+		opacity: 1;
+	}
+	.delete {
+		width: 100px;
+	}
+	.delete paper-button:nth-of-type(1) {
+		color: blue;
+	}
+	.delete paper-button:nth-of-type(2) {
+		color: red;
+	}
+</style>
+<template>
+	<paper-material elevation="1">
+		<div class="lt">
+			<paper-checkbox on-change="trafficChange" hidden="{{!isNcs}}" id="traffic" checked="{{traffic}}"></paper-checkbox>
+			<span>#</span><span class="linenum">{{callsign.line}}</span>
+			<span hidden="{{!traffic}}" class="traffic">*</span>
+		</div>
+		<span class="callsign">{{callsign.callsign}}</span>
+		<span class="name">{{callsign.name}}</span>
+		<div class="location">
+			<span class="county">{{callsign.county}}</span>
+			<span hidden="{{hideCity}}">(<span class="city">{{callsign.city}}</span>)</span>
+		</div>
+		<div class="jobs">
+			<template is="dom-repeat" items="{{callsign.jobs}}">
+				<span>{{item}}</span>
+			</template>
+		</div>
+		<div hidden="{{!isNcs}}" class="delete">
+			<paper-icon-button icon="close" hidden="{{deleteYesNo}}" on-tap="deleteConfirm"></paper-icon-button>
+			<paper-button hidden="{{!deleteYesNo}}" on-tap="deleteConfirm">Cancel</paper-button>
+			<paper-button hidden="{{!deleteYesNo}}" on-tap="deleteCheckin">Delete</paper-button>
+		</div>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-checkin',
+		properties: {
+			callsign: {
+				type: Object,
+				value: {
+					jobs: [],
+				}
+			},
+			deleteYesNo: {
+				type: Boolean,
+				value: false
+			},
+			isNcs: {
+				type: Boolean,
+				value: false
+			},
+			hideCity: {
+				type: Boolean,
+				value: true,
+			},
+			traffic: {
+				type: Boolean,
+				value: false
+			}
+		},
+		observers: [
+			'hideCityChanged(callsign.city)'
+		],
+		deleteCheckin: function() {
+			this.deleteYesNo = false;
+			ce.jaxson('nets/delete_checkin',{
+				net: ce.net.id,
+				cid: this.callsign.id
+			});
+		},
+		deleteConfirm: function() {
+			this.deleteYesNo = !this.deleteYesNo;
+		},
+		hideCityChanged: function() {
+			if(this.callsign.city.length > 0 && this.callsign.city != 'undefined' && this.callsign.city != "")
+				this.hideCity = false;
+			else
+				this.hideCity = true;
+		},
+		trafficChange: function(event) {
+			this.traffic = event.target.checked;
+			var traffic = this.traffic ? 1 : 0;
+			ce.jaxson('nets/has_traffic',{
+				cid: this.callsign.id,
+				traffic: traffic
+			});
+		},
+
+	});
+</script>

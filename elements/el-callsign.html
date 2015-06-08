@@ -1,0 +1,87 @@
+<dom-module id="el-callsign">
+<style>
+	:host {
+		display: block;
+		margin: 15px;
+	}
+	paper-material {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px 25px;
+		text-align: center;
+		transition: background .3s ease;
+		background-color: var(--page-color-one);
+	}
+	paper-material:hover {
+		background-color: var(--page-color-one-hover);
+		cursor: pointer;
+	}
+	.callsign {
+		width: 100px;
+		font-size: 22px;
+		color: var(--page-font-color-two);
+	}
+	.name {
+		width: 100px;
+		font-size: 20px;
+	}
+	.location {
+		width: 200px;
+		
+	}
+	.jobs {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		text-align: center;
+		width: 200px;
+		font-size: 16px;
+	}
+	.jobs span {
+		display: block;
+	}
+</style>
+<template>
+	<paper-material elevation="1">
+		<span class="callsign">{{callsign.callsign}}</span>
+		<span class="name">{{callsign.name}}</span>
+		<div class="location">
+			<span class="county">{{callsign.county}}</span>
+			<span hidden$="{{hideCity}}">(<span class="city">{{callsign.city}}</span>)</span>
+		</div>
+		<div class="jobs">
+			<template is="dom-repeat" items="{{callsign.jobs}}">
+				<span>{{item}}</span>
+			</template>
+		</div>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-callsign',
+		properties: {
+			callsign: {
+				type: Object,
+				value: {
+					callsign: '',
+					name: '',
+					city: '',
+					county: '',
+					jobs: []
+				}
+			},
+			hideCity: {
+				type: Boolean,
+				value: true,
+				notify: true
+			}
+		},
+		ready: function() {
+			if(this.callsign.city.length > 0 && this.callsign.city != 'undefined') {
+				this.hideCity = false;
+			}
+		},
+
+	});
+</script>

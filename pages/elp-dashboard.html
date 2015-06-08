@@ -1,0 +1,81 @@
+<dom-module id="elp-dashboard">
+<style>
+	:host {
+		display: block;
+	}
+	paper-material {
+		padding: 15px;
+		margin: 5px;
+		background-color: var(--page-color-one);
+	}
+	h1 {
+		text-align: center;
+	}
+	p {
+		padding: 25px 35px 15px 35px;
+	}
+	paper-button {
+		background-color: var(--page-background-toolbar);
+		color: white;
+	}
+</style>
+<template>
+	<paper-material elevation="1">
+		<h1><span>{{callsign}}</span>'s Dashboard</h1>
+		<hr>
+		<p>
+			<b>Thank you</b> for registering!
+		<p>
+			<b>Here</b> you can update your <paper-button raised on-tap="dialogOpen" data-dialog="information">information</paper-button>
+		</p>
+		<p>
+			<b>You</b> can also change your <paper-button raised on-tap="dialogOpen" data-dialog="password">password</paper-button>
+		</p>
+	</paper-material>
+
+	<paper-dialog entry-animation="scale-up-animation" id="password" no-cancel-on-outside-click no-auto-focus data-enter="passwordChange">
+		<h2 style="width: 300px">Change Your Password</h2>
+		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+		<paper-input value="{{password}}" type="password" label="New Password" autofocus></paper-input>
+		<div style="text-align: center">
+			<paper-button on-tap="passwordChange" raised>Update</paper-button>
+		</div>
+	</paper-dialog>
+	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'elp-dashboard',
+		properties: {
+			info: {
+				type: Object,
+				value: {
+					title: 'Dashboard',
+					url: '/dashboard'
+				}
+			},
+			callsign: {
+				type: String
+			},
+			password: {
+				type: String
+			}
+		},
+		behaviors: [
+			Polymer.ELBehavior
+		],
+		ready: function() {
+			this.callsign = el.user.callsign;
+		},
+		passwordChange: function() {
+			this.jaxson('users/change_password', {
+				uid: el.user.uid,
+				password: this.password
+			});
+			this.dialog.close();
+		},
+		_dialog: function(dialog, target) {
+		},
+	});
+</script>

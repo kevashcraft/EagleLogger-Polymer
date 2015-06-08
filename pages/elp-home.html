@@ -1,0 +1,60 @@
+<dom-module id="elp-home">
+<style>
+	:host {
+		display: block;
+	}
+	paper-material {
+		padding: 15px;
+		margin: 5px;
+		background-color: var(--page-color-one);
+	}
+	h1 {
+		text-align: center;
+	}
+	p {
+		padding: 25px 35px 15px 35px;
+	}
+	paper-button {
+		background-color: var(--page-background-toolbar);
+		color: white;
+	}
+</style>
+<template>
+	<paper-material elevation="1">
+		<h1>Welcome to Eagle Logger</h1>
+		<hr>
+		<p>
+			<b>The Eagle Logger</b> is a website designed for The West Central Florida EagleNet which runs daily at 8:30pm on the <a href="http://ni4ce.com" title="NI4CE Linked Repeater System" target="_blank">NI4CE</a> repeater system.
+		</p>
+		<p>
+			<b>This site</b> is available for anyone wishing to monitor net checkins via the web and can be used by any NCS wishing to create an online log of their net.
+		</p>
+		<p>
+			<b>Past and current nets</b> are listed on the <paper-button raised on-tap="nets">Nets</paper-button> page.
+		</p>
+		<p>
+			<b>You can login</b> to update your information. To register, simply enter your callsign and the password that you'd like in the <paper-button raised on-tap="login">login</paper-button> box.
+		</p>
+	</paper-material>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'elp-home',
+		properties: {
+			info: {
+				type: Object,
+				value: {
+					title: 'The Eagle Logger',
+					url: '/'
+				}
+			},
+		},
+		login: function() {
+			el.setPage('login', 'push');
+		},
+		nets: function() {
+			el.setPage('nets', 'push');
+		},
+	});
+</script>

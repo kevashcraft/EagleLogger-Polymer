@@ -1,0 +1,72 @@
+<script>
+Polymer.ELBehavior = {
+	dialogOpen: function(eord) {
+		// If there's a dialog currently open, close it first
+		if(this.dialog)
+			this.dialog.close();
+
+		// Determine if passed argument is an event or name of a dialog
+		if(typeof eord == 'string') {
+			var dialog = eord;
+			var target = null;
+		} else {
+			var target = findTargetByData(event, 'dialog');
+			var dialog = target.dataset.dialog;
+		}
+
+		// Assign dialog to local variable
+		this.dialog = this.$[dialog];
+
+		// Pass dialog back to calling page for additional actions
+		this._dialog(dialog, target);
+
+		// Listen for enters
+		if(this.dialog.dataset.enter) {
+			this.dialog.addEventListener('keypress', this.dialogEnter);
+		}
+
+		// Open the dialog
+		this.dialog.open();
+
+	},
+	dialogEnter: function(event) {
+		if(event.keyCode == 13) {
+			var target = findTarget(event, 'paper-dialog');
+			ce[target.dataset.enter]();
+			this.removeEventListener('keypress', this.dialogEnter);
+		}
+	},
+	jaxson: function(url,params) {
+		var jaxson = this.$.jaxson;
+		params = params || {};
+		if(el.user)
+			params.token = el.user.token || 0;
+		jaxsons.push({url: '/jaxson/' + url, params: params});
+		var looper = setInterval(function(){
+			if(jaxsons.length > 0) {
+				jaxson.params = jaxsons[0].params;
+				jaxson.url = jaxsons[0].url;
+				jaxson.generateRequest();
+				jaxsons.splice(0,1);
+			} else {
+				clearInterval(looper);
+			}
+		}.bind(this),250);
+	},
+	jaxsonResponse: function(e,d) {
+		var r = d.response;
+		if(r.toast)
+			this.toast(r.toast);
+		this._jaxson(r);
+	},
+	toast: function(message, duration) {
+		var toaster = el.$.toast;
+		duration = duration || 2000;
+		toaster.duration = duration;
+		toaster.text = message;
+		toaster.show();
+		console.log("toaster",toaster);
+	},
+
+};
+</script>
