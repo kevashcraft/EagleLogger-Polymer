@@ -13,26 +13,22 @@
 	}
 </style>
 <template>
-	<paper-dialog entry-animation="scale-up-animation" id="login" no-cancel-on-outside-click no-cancel-on-esc-key>
-		<h2>Login/Register</h2>
+	<el-dialog heading="Login/Register" open-me enter-pressed="login" hide-close no-esc no-outside>
 		<paper-input label="Callsign" value="{{callsign}}" autofocus></paper-input>
 		<paper-input label="Password" value="{{password}}" type="password"></paper-input>
 		<div style="text-align: center">
 			<paper-button on-tap="login" raised>Login</paper-button>
 			<paper-icon-button icon="help" on-tap="helpMe" style="position: absolute; left: 0; bottom: 5px"></paper-icon-button>
 		</div>
-	</paper-dialog>
+	</el-dialog>
 
-	<paper-dialog id="help">
-		<h2>How to register</h2>
-		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+	<el-dialog id="help" heading="How to register">
 		<p style="font-size: 21px">
-			If you've never logged in before,<br>
-			enter your callsign and the password that you want<br>
-			in the login box and a new account will be created for you.
+			Never logged in before?<br>
+			Enter your callsign and desired password<br>
+			a new account will be created for you :)
 		</p>
-	</paper-dialog>
-	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
+	</el-dialog>
 </template>
 </dom-module>
 <script>
@@ -55,11 +51,6 @@
 			}
 		},
 		ready: function() {
-			setTimeout(function(){
-				this.$.login.open();
-				this.$.login.addEventListener('keypress', function(event) { if(event.keyCode == 13) this.login() }.bind(this));
-			}.bind(this), 250);
-
 		},
 		helpMe: function() {
 			this.$.help.open();
@@ -73,12 +64,9 @@
 		_callsignChanged: function(callsign) {
 			this.callsign = callsign.toUpperCase();
 		},
-		_jaxson: function(r) {
-			console.log("r.user",r.user);
-			if(r.user.token) {
-				el.user = r.user;
-				el.setPage('dashboard', 'push');
-			}
+		_jaxson: function(response) {
+			if(response.user)
+				EL.login(response.user);
 		},
 	});
 </script>

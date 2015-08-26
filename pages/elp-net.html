@@ -3,11 +3,6 @@
 	:host {
 		display: block;
 	}
-	paper-dialog paper-icon-button[icon="close"] {
-		position: absolute;
-		top: -5px;
-		right: 0;
-	}
 	paper-dialog paper-button {
 		display: block;
 	}
@@ -20,8 +15,15 @@
 		padding-bottom: 45px;
 	}
 	.bottom {
-		position: absolute;
+		position: fixed;
 		bottom: 5px;
+	}
+	paper-button.blue {
+		color: white;
+		background-color: blue;
+	}
+	paper-button.red {
+		background-color: red;
 	}
 </style>
 <template>
@@ -35,16 +37,12 @@
 		</template>
 	</div>
 
-	<paper-dialog id="checkin" entry-animation="scale-up-animation" no-cancel-on-outside-click no-auto-focus style="min-height: 400px; min-width: 300px">
-		<h2 style="width: 300px">New Checkin</h2>
-		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+	<el-dialog heading="New Checkin" id="checkin" no-outside>
 		<div id="callsignAutoComplete"></div>
 		<div style="padding-bottom: 100px"></div>
-	</paper-dialog>
+	</el-dialog>
 
-	<paper-dialog id="newcallsign" entry-animation="scale-up-animation" no-cancel-on-outside-click no-auto-focus style="max-height: 500px" data-enter="addAndCheckin">
-		<h2 style="width: 300px">New Callsign</h2>
-		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+	<el-dialog heading="New Callsign" id="newcallsign" no-outside enter-pressed="addAndCheckin">
 		<paper-input value="{{callsign.callsign}}" label="Callsign"></paper-input>
 		<paper-input value="{{callsign.name}}" label="Name" autofocus></paper-input>
 		<paper-input value="{{callsign.county}}" label="County"></paper-input>
@@ -52,17 +50,20 @@
 		<div style="text-align: center">
 			<paper-button on-tap="addAndCheckin" rasied style="background-color: blue; color: white">Add</paper-button>
 		</div>
-	</paper-dialog>
+	</el-dialog>
 
-	<paper-fab icon="add" on-tap="dialogOpen" data-dialog="checkin" hidden="{{!isActiveAndNcs}}"></paper-fab>
+	<paper-fab icon="add" on-tap="dialog" data-dialog="checkin" hidden="{{!isActiveAndNcs}}"></paper-fab>
 	<div class="bottom">
 		<span hidden="{{!isNcs}}">
-			<paper-button on-tap="netEnd" hidden="{{!isActiveAndNcs}}">Close Net</paper-button>
-			<paper-button on-tap="netReOpen" hidden="{{isActiveAndNcs}}">ReOpen Net</paper-button>
+			<paper-button on-tap="netEnd" hidden="{{!isActiveAndNcs}}" class="blue">Close Net</paper-button>
+			<paper-button on-tap="netReOpen" hidden="{{isActiveAndNcs}}" class="blue">Re-Open Net</paper-button>
+			<span hidden="{{isActiveAndNcs}}">
+				<paper-button on-tap="deleteConfirm" hidden="{{deleteHidden}}" class="red">Delete Net</paper-button>
+				<paper-button on-tap="netDelete" hidden="{{!deleteHidden}}" class="red">Really Delete</paper-button>
+				<paper-button on-tap="deleteConfirm" hidden="{{!deleteHidden}}" class="blue">Cancel</paper-button>
+			</span>
 		</span>
 	</div>
-	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
-
 </template>
 </dom-module>
 <script>
@@ -90,6 +91,10 @@
 				type: Array,
 				value: []
 			},
+			deleteHidden: {
+				type: Boolean,
+				value: false
+			},
 			isActiveAndNcs: {
 				type: Boolean,
 				value: false
@@ -109,35 +114,33 @@
 			if(netId) {
 				var net = netId;
 				if(net == 'new')
-					var ncs = el.user.cid;
+					var ncs = EL.user.cid;
 			} else {
 				var location = window.location.pathname.split( '/' );
 				var net = location[2];
 				if(net == '') {
-					el.setPage('nets','push');
+					EL.setPage(['nets']);
 					return;
 				}
 			}
 			this.jaxson('nets/retrieve_entry',{
 				net: net,
-				ncs: ncs
+				ncs: ncs,
 			});
 
-			ce = this;
-			this.autocomplete();
 		},
 		autocomplete: function(e,d,o) {
 			this.callsignAutoComplete = completely(this.$.callsignAutoComplete);
 			this.callsignAutoComplete.input.autofocus = true;
 			this.callsignAutoComplete.input.classList.add('callsignAutoComplete');
 			this.callsignAutoComplete.input.$.input.bindValue = this.callsignInput;
-			this.jaxson("callsigns/list_and_describe");
+			this.jaxson("callsigns/list_and_describe", {bypass_token: true});
 			this.callsignAutoComplete.onEnter = function() {
 				var callsign = this.callsignAutoComplete.getText().toLowerCase();
 				this.callsignAutoComplete.hideDropDown();
 				var index = -1;
 				for(var i = 0; i < this.allcallsigns.length; i++){
-					if (callsign == this.allcallsigns[i].toLowerCase())
+					if (this.allcallsigns[i] != null && callsign == this.allcallsigns[i].toLowerCase())
 						index = i;
 				}
 				if(index == -1) {
@@ -145,7 +148,7 @@
 						callsign: callsign.toUpperCase()
 					};
 					console.log("this.callsign.callsign",this.callsign.callsign);
-					this.dialogOpen('newcallsign');
+					this.dialog('newcallsign');
 				} else {
 					this.jaxson('nets/new_checkin',{
 						net: this.net.id,
@@ -163,10 +166,18 @@
 				county: this.callsign.county,
 				city: this.callsign.city,
 			});
-			this.dialogOpen('checkin');
+			this.dialog('checkin');
 		},
 		dialogCheckin: function() {
-			this.dialogOpen('checkinNew');
+			this.dialog('checkinNew');
+		},
+		deleteConfirm: function() {
+			this.deleteHidden = !this.deleteHidden;
+		},
+		netDelete: function() {
+			this.jaxson('nets/delete_net', {
+				net: this.net.id
+			});
 		},
 		netEnd: function() {
 			this.jaxson('nets/end_net', {
@@ -180,12 +191,8 @@
 		},
 		setupSSE: function(net) {
 			if(net.active == 1 && !this.isNcs ) {
-
 				if(!this.sse) {
-					this.sse = new EventSource('/jaxson/events/net_listener?net=' + net.id);
-					this.sse.onmessage = function(event) {
-						console.log("event",event);
-					};
+					this.sse = new EventSource('/jaxson/events/net_listener?net=' + net.id + '&bypass_token=true');
 					this.sse.addEventListener('checkin', function(event){
 						console.log("event.data",event.data);
 						var callsigns = JSON.parse(event.data);
@@ -208,6 +215,7 @@
 			}
 		},
 		_dialog: function(dialog, target) {
+			return dialog;
 		},
 		_jaxson: function(info) {
 			switch(info.subject) {
@@ -215,7 +223,7 @@
 					switch(info.action) {
 						case 'retrieve_entry':
 							if(!info.net.id) {
-								el.setPage('nets', 'replace');
+								EL.setPage(['nets'], true);
 								break;
 							}
 							window.history.replaceState({
@@ -224,20 +232,20 @@
 								url: '/net/' + info.net.id
 							}, info.dow + ' | Eagle Logger', '/net/' + info.net.id);
 							document.title = info.net.dow + "'s EagleNet | Eagle Logger";
-							if(el.user && info.net.ncs_id == el.user.cid) {
+							if(EL.user && info.net.ncs_id == EL.user.cid) {
+								this.autocomplete();
 								this.isNcs = true;
 							}
 						case 'reopen_net':
 						case 'end_net':
-							if(el.user && info.net.ncs_id == el.user.cid && info.net.active == 1) this.isActiveAndNcs = true;
+							if(EL.user && info.net.ncs_id == EL.user.cid && info.net.active == 1) this.isActiveAndNcs = true;
 							else this.isActiveAndNcs = false;
 							if(info.net.active == 1 && !this.isNcs)
 								this.setupSSE(info.net);
 						case 'add_checkin':
 						case 'new_checkin':
 						case 'delete_checkin':
-							console.log("info",info);
-							el.$.header.innerHTML = "<span>" + info.net.dow + "'s EagleNet - " + info.net.month + ", " + info.net.day + "</span><span>NCS: " + info.net.ncs + "</span><span>Checkins: " + info.net.checkins + "</span><span>Traffic: " + info.net.traffic + "</span>"; 
+							EL.$.header.innerHTML = "<span>" + info.net.dow + "'s EagleNet - " + info.net.month + ", " + info.net.day + "</span><span>NCS: " + info.net.ncs + "</span><span>Checkins: " + info.net.checkins + "</span><span>Traffic: " + info.net.traffic + "</span>"; 
 							var callsigns = info.callsigns;
 							for(var i = 0; i < callsigns.length; i++) {
 								callsigns[i].jobs = JSON.parse(callsigns[i].jobs)
@@ -245,6 +253,9 @@
 							this.net = info.net;
 							this.callsigns = callsigns;
 
+							break;
+						case 'delete_net':
+							EL.setPage('nets');
 							break;
 					}
 					break;

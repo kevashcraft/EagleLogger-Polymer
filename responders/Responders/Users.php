@@ -9,7 +9,7 @@ class Users
 		$password = $_GET['password'];
 
 		$stm = \Jaxson::$db->prepare("SELECT
-			users.id as uid, users.password, callsigns.callsign, callsigns.ncs, callsigns.id as cid
+			users.id as uid, users.password, callsigns.callsign, callsigns.ncs, callsigns.id as cid, callsigns.name, callsigns.county, callsigns.city, callsigns.website, callsigns.blurb 
 			FROM callsigns
 			LEFT JOIN users ON users.cid = callsigns.id
 		 	WHERE callsigns.callsign = ?
@@ -40,7 +40,7 @@ class Users
 			$stm->execute($values);
 
 			$stm = \Jaxson::$db->prepare("SELECT
-				users.id as uid, users.password, callsigns.callsign, callsigns.ncs, callsigns.id as cid
+				users.id as uid, users.password, callsigns.callsign, callsigns.ncs, callsigns.id as cid, callsigns.name, callsigns.county, callsigns.city, callsigns.website, callsigns.blurb 
 				FROM callsigns
 				LEFT JOIN users ON users.cid = callsigns.id
 			 	WHERE callsigns.callsign = ?
@@ -49,11 +49,15 @@ class Users
 
 			$stm->execute(array($callsign));
 			$res = $stm->fetch();
+
 		}
 
 
 		$hash = $res['password'];
 		$uid = $res['id'];
+		\Jaxson::$response['uid'] = $uid;
+
+
 
 		if($hash && password_verify($password, $hash)) {
 			$token = randString(64);
@@ -73,7 +77,12 @@ class Users
 				'cid' => $res['cid'],
 				'uid' => $res['uid'],
 				'callsign' => $res['callsign'],
+				'name' => $res['name'],
 				'password' => 'this is a password',
+				'county' => $res['county'],
+				'city' => $res['city'],
+				'blurb' => $res['blurb'],
+				'website' => $res['website'],
 				'ncs' => $ncs,
 				'token' => $token
 			);
@@ -82,8 +91,29 @@ class Users
 		}
 	}
 
-	public static function token_check() {
-		return true;
+
+	public static function token_check()
+	{
+		$token = $_GET['token'];
+
+		$stm = \Jaxson::$db->prepare("SELECT
+			tokens.token
+			FROM tokens
+		 	WHERE tokens.token = ?
+		 	AND tokens.valid = 1
+		 ");
+
+		$stm->execute(array($token));
+
+		if($stm->fetchColumn()) {
+			\Jaxson::$response['token_valid'] = true;
+			return true;
+		} else {
+			\Jaxson::$response['token_valid'] = false;
+			return false;
+		}
+
+
 	}
 
 
@@ -99,6 +129,30 @@ class Users
 		$stm->execute(array($hash, $uid));
 
 		\Jaxson::$response['toast'] = "Your password has been changed";
+	}
+
+
+	public static function update_information() {
+		$cid = $_GET['cid'];
+		$county = $_GET['county'];
+		$city = $_GET['city'];
+		$website = $_GET['website'];
+		$blurb = $_GET['blurb'];
+		$name = $_GET['name'];
+
+		$stm = \Jaxson::$db->prepare("UPDATE callsigns SET
+			county = ?,
+			city = ?,
+			website = ?,
+			blurb = ?,
+			name = ?
+			WHERE id = ?");
+
+		$values = array($county, $city, $website, $blurb, $name, $cid);
+		$stm->execute($values);
+
+		\Jaxson::$response['toast'] = "Your information has been updated :)";
+
 	}
 
 

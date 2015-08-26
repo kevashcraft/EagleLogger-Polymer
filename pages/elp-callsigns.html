@@ -21,36 +21,30 @@
 <template>
 	<template is="dom-repeat" items="{{callsigns}}">
 		<el-callsign
-			on-tap="dialogOpen"
+			on-tap="dialog"
 			data-dialog="callsignUpdate"
 			callsign="{{item}}"
 		></el-callsign>
 	</template>
-	<paper-dialog entry-animation="scale-up-animation" id="callsignAdd" no-cancel-on-outside-click no-auto-focus style="max-height: 850px">
-		<h2 style="width: 300px">Add Callsign</h2>
-		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+	<el-dialog heading="Add Callsign" id="callsignAdd" no-outside enter-pressed="callsignAdd">
 		<paper-input label="Callsign" value="{{cs}}" autofocus></paper-input>
 		<paper-input label="Name" value="{{callsign.name}}"></paper-input>
 		<paper-input label="City" value="{{callsign.city}}"></paper-input>
 		<paper-input label="County" value="{{callsign.county}}"></paper-input>
-		<div style="height: 400px; border: 1px solid blue">
-			<template is="dom-repeat" items="{{jobs}}">
-				<div>
-					<span style="width: 200px">{{item}}</span>
-					<paper-icon-button icon="delete" on-tap="jobsRemove" data-index="{{index}}"></paper-icon-button>
-				</div>
-			</template>
-		</div>
+		<template is="dom-repeat" items="{{jobs}}">
+			<div>
+				<span style="width: 200px">{{item}}</span>
+				<paper-icon-button icon="delete" on-tap="jobsRemove" data-index="{{index}}"></paper-icon-button>
+			</div>
+		</template>
 		<div>
 			<paper-input label="Job" value="{{job}}" style="display: inline-block"></paper-input>
 			<paper-icon-button icon="add" on-tap="jobsAdd"></paper-icon-button>
 		</div>
 		<paper-button on-tap="callsignAdd" raised>Add</paper-button>
-	</paper-dialog>
+	</el-dialog>
 
-	<paper-dialog entry-animation="scale-up-animation" id="callsignUpdate" no-cancel-on-outside-click no-auto-focus style="max-height: 850px">
-		<h2 style="width: 300px">Update Callsign</h2>
-		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+	<el-dialog heading="Update Callsign" id="callsignUpdate" no-outside>
 		<paper-input label="Callsign" value="{{cs}}" autofocus></paper-input>
 		<paper-input label="Name" value="{{callsign.name}}"></paper-input>
 		<paper-input label="City" value="{{callsign.city}}"></paper-input>
@@ -67,10 +61,9 @@
 			<paper-icon-button icon="add" on-tap="jobsAdd"></paper-icon-button>
 		</div>
 		<paper-button on-tap="callsignUpdate" raised>Update</paper-button>
-	</paper-dialog>
+	</el-dialog>
 
-	<paper-fab icon="add" on-tap="dialogOpen" data-dialog="callsignAdd"></paper-fab>
-	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
+	<paper-fab icon="add" on-tap="dialog" data-dialog="callsignAdd"></paper-fab>
 </template>
 </dom-module>
 <script>
@@ -97,11 +90,10 @@
 		],
 		ready: function() {
 			this.jaxson('callsigns/list_all');
-			ce = this;
-			el._searchChanged = function() { this._searchChanged() }.bind(this);
+			EL._searchChanged = function() { this._searchChanged() }.bind(this);
 		},
 		callsignAdd: function() {
-			this.$.callsignAdd.close();
+			this.dialogClose();
 			if(this.job)
 				this.jobs.push(this.job);
 			this.jaxson('callsigns/add_entry',{
@@ -113,8 +105,7 @@
 			});
 		},
 		callsignUpdate: function() {
-			this.$.callsignUpdate.close();
-			console.log("this.jobs",this.jobs);
+			this.dialogClose();
 			if(this.job)
 				this.jobs.push(this.job);
 			this.jaxson('callsigns/update_entry',{
@@ -169,13 +160,15 @@
 					this.$[dialog].dataset.enter = "callsignUpdate";
 					break;
 			}
+			return dialog;
 		},
 		_jaxson: function(info) {
 			switch(info.subject) {
 				case 'callsigns':
 					switch(info.action) {
-						case 'list_all':
 						case 'add_entry':
+							this.dialog('callsignAdd')
+						case 'list_all':
 						case 'update_entry':
 							var callsigns = info.callsigns;
 							for(var i = 0; i < callsigns.length; i++) {

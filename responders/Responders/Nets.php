@@ -53,8 +53,8 @@ class Nets
 
 		if($net_id == 'new') {
 			$stm = \Jaxson::$db->prepare("INSERT INTO nets(
-				ndate, start, checkins, traffic, ncs_id)
-				VALUES(NOW(), NOW(), 0, 0 , ?)
+				ndate, start, ncs_id)
+				VALUES(NOW(), NOW(), ?)
 				");
 			$stm->execute(array($ncs));
 
@@ -236,6 +236,12 @@ class Nets
 		$stm->execute(array($net));
 
 		self::retrieve_entry();
+	}
+
+	public static function delete_net() {
+		$net = $_GET['net'];
+		$stm = \Jaxson::$db->prepare("UPDATE nets SET valid = 0 WHERE id = ?");
+		$stm->execute(array($net));
 	}
 
 

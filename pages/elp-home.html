@@ -32,8 +32,11 @@
 		<p>
 			<b>Past and current nets</b> are listed on the <paper-button raised on-tap="nets">Nets</paper-button> page.
 		</p>
-		<p>
+		<p hidden="{{authed}}">
 			<b>You can login</b> to update your information. To register, simply enter your callsign and the password that you'd like in the <paper-button raised on-tap="login">login</paper-button> box.
+		</p>
+		<p hidden="{{!authed}}">
+			<b>Update</b> your information at the <paper-button raised on-tap="dashboard">dashboard</paper-button>
 		</p>
 	</paper-material>
 </template>
@@ -49,12 +52,19 @@
 					url: '/'
 				}
 			},
+			authed: Boolean,
+		},
+		ready: function() {
+			this.authed = this.user && this.user.token ? true : false;
+		},
+		dashboard: function() {
+			EL.setPage(['dashboard']);
 		},
 		login: function() {
-			el.setPage('login', 'push');
+			EL.setPage(['login']);
 		},
 		nets: function() {
-			el.setPage('nets', 'push');
+			EL.setPage(['nets']);
 		},
 	});
 </script>

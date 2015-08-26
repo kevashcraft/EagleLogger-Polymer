@@ -1,60 +1,124 @@
 <script>
 Polymer.ELRouter = {
+	pages: {
+		login: 'elp-login',
+		net: 'elp-net',
+		nets: 'elp-nets',
+		callsigns: 'elp-callsigns',
+	},
 	router: function() {
 		var location = window.location.pathname.split('/');
 		var page = location[1].toLowerCase();
-		this.setPage(page, 'replace');
-		this.statelyListen();
+		this.setPage(false, 1);
+		this._statelyListen();
 	},
-	setPage: function(page, action, router) {
+	setPage: function(location, replace) {
 
-		if(ce) {
-			console.log("ce",ce);
-			if(ce.sse)
-				console.log("ce.sse",ce.sse);
+		var action = replace ? 'replace' : 'push'
+
+		this.header = '';
+
+		if(this.ce && this.ce.sse) this.ce.sse.close();
+
+		this.searchDisable();
+
+		var page = this._page(location);
+
+		var elem = this.ce = document.createElement(page);
+
+		if(elem.vertMenu) {
+			this.vertMenu = elem.vertMenu;
+			this.vertMenuHidden = false;
+		} else {
+			this.vertMenuHidden = true;
 		}
-		if(ce && ce.sse)
-			ce.sse.close();
 
-		el.$.header.innerHTML = '';
-		if(page == '') page = 'home';
+		url = '/' + this.location.join('/');
 
+		if (url == '//') url = '/';
 
-		
-		if(page == 'login' && el.user.token)
-			page = 'dashboard';
-
-		el.searchDisable();
-
-		var page = 'elp-' + page;
-		var elem = ce = document.createElement(page);
-		this.stately({
+		this._stately({
 			element: page,
 			title: elem.info.title,
-			url: elem.info.url,
+			url: url,
+			location: this.location,
+			header: elem.info.header
 		}, action, elem);
 
 	},
-	stately: function(o, action, elem) {
-		if(action == 'pop')
-			var elem = document.createElement(o.element);
-
-		document.title = o.title + " | Eagle Logger";
+	_stately: function(o, action, elem) {
+		if(action == 'pop') {
+			this.location = o.location;
+			var elem = this.ce = document.createElement(o.element);
+		}
 
 		if(action == 'push')
 			window.history.pushState(o, o.title, o.url);
 		else if(action == 'replace')
 			window.history.replaceState(o, o.title, o.url);
 
+		this.header = o.header;
 
-		el.$.content.innerHTML = '';
+		this.$.content.innerHTML = '';
 
-		el.$.content.appendChild(elem);
+		this.$.content.appendChild(elem);
+
+		document.title = o.title + " | Eagle Logger";
+
+		if(!elem.customHighlight)
+			this.menuHighlighter();
+
 	},
-	statelyListen: function() {
+	_statelyListen: function() {
 		window.addEventListener('popstate', function(e){
-			this.stately(e.state, 'pop');
+			this._stately(e.state, 'pop');
 		}.bind(this));
+	},
+	_page: function(location) {
+
+		var location = this._location(location);
+
+		// Define first level page
+		var page = this.pages[location[0]] || '';
+
+		// Find the page 
+		for(var i = 1; i < location.length; i++) {
+			if(typeof page != 'string' && typeof page[location[i]] != 'undefined')
+				page = page[location[i]];
+			else
+				break;
+		}
+
+		// set the page if it's a string
+		if(typeof page != 'string') page = '';
+
+		// Default is dashboard
+		if(page == '') page = 'elp-dashboard';
+
+		// Unauthed default is login page
+		if(!this.authed && page == 'elp-dashboard') page = 'elp-home';
+
+		// If authed and trying to go to login, go to dashboard
+		if(this.authed && page == 'elp-login')
+			page = 'elp-dashboard';
+
+		if(page == 'elp-dashboard' || page == 'elp-login')
+			this._location([page.substr(4)]);
+
+		return page;
+	},
+	_location: function(location) {
+
+		// Grab the location - removes first (and last) slash, lowercase it, then convert to array
+		if(!location)
+			var location = window.location.pathname.substr(1).replace(/\/$/,'').toLowerCase().split('/');
+
+		if(location[0] == 'home')
+			location = [''];
+
+		// Set the stored location
+		this.location = location;
+		return location;
 	},
 }
 </script>

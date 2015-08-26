@@ -1,127 +1,5 @@
-<!-- Polymer -->
-<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="/bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="/bower_components/iron-localstorage/iron-localstorage.html">
-<link rel="import" href="/bower_components/neon-animation/neon-animations.html">
-<link rel="import" href="/bower_components/paper-button/paper-button.html">
-<link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="/bower_components/paper-drawer-panel/paper-drawer-panel.html">
-<link rel="import" href="/bower_components/paper-header-panel/paper-header-panel.html">
-<link rel="import" href="/bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="/bower_components/paper-input/paper-input.html">
-<link rel="import" href="/bower_components/paper-material/paper-material.html">
-<link rel="import" href="/bower_components/paper-styles/paper-styles.html">
-<link rel="import" href="/bower_components/paper-toast/paper-toast.html">
-<link rel="import" href="/bower_components/paper-toolbar/paper-toolbar.html">
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<link rel="import" href="/bower_components/paper-fab/paper-fab.html">
-<link rel="import" href="/bower_components/paper-checkbox/paper-checkbox.html">
-<!-- EL Elements -->
-<link rel="import" href="/elements/el-behavior.html">
-<link rel="import" href="/elements/el-callsign.html">
-<link rel="import" href="/elements/el-checkin.html">
-<link rel="import" href="/elements/el-net.html">
-<link rel="import" href="/elements/el-style.html">
-<link rel="import" href="/elements/el-router.html">
-<!-- EL Pages -->
-<link rel="import" href="/pages/elp-callsigns.html">
-<link rel="import" href="/pages/elp-dashboard.html">
-<link rel="import" href="/pages/elp-home.html">
-<link rel="import" href="/pages/elp-login.html">
-<link rel="import" href="/pages/elp-net.html">
-<link rel="import" href="/pages/elp-nets.html">
-<!-- More JS -->
-<script src="/src/complete.ly.1.0.1.js"></script>
 <dom-module id="el-main">
-	<style>
-		:host {
-			display: block;
-		}
-		paper-header-panel[main] {
-			background-color: var(--page-background-main);
-		}
-		paper-header-panel[drawer] {
-			background-color: var(--page-background-drawer);
-			color: var(--page-menu-color);
-			font-family: var(--page-menu-font);
-		}
-		paper-toolbar {
-			background-color: var(--page-background-toolbar);
-		}
-
-		paper-toolbar h1 {
-			display: inline-block;
-			font-family: var(--home-link-font);
-			font-size: 32px;
-			text-align: center;
-		}
-
-		paper-toolbar h1 a {
-			text-decoration: none;
-			color: var(--home-link-color);
-			font-size: 32px;
-		}
-
-		paper-drawer-panel paper-header-panel[main] paper-toolbar h1 {
-			display: none;
-		}
-
-		paper-drawer-panel[narrow] paper-header-panel[main] paper-toolbar h1 {
-			display: inline-block;
-		}
-
-		.header {
-			display: flex;
-			justify-content: space-around;
-			font-size: 18px;
-		}
-
-		.menu {
-			margin-top: 25px;
-			margin-bottom: 85px;
-			font-size: 24px;
-		}
-
-		.menu paper-button{
-			display: block;
-			transition: color .2s ease;
-		}
-
-		.menu paper-button:hover{
-			display: block;
-			color: var(--link-hover-color);
-		}
-
-		.bottom {
-			position: absolute;
-			bottom: 0;
-			left: 15px;
-			right: 15px;
-			height: 48px;
-			border-top: 1px solid black;
-			display: flex;
-			justify-content: space-between;
-			font-size: 18px;
-			transition: color .2s ease;
-		}
-
-		.bottom paper-button {
-			transition: color .2s ease;
-		}
-
-		.bottom paper-icon-button {
-			transition: color .2s ease;
-		}
-
-		.bottom paper-button:hover {
-			color: var(--link-hover-color);
-		}
-
-		.bottom paper-icon-button:hover {
-			color: var(--link-hover-color);
-		}
-
-	</style>
+	<link rel="import" type="css" href="/styles/el-main.css">
 	<template>
 		<paper-drawer-panel>
 			<paper-header-panel drawer>
@@ -129,32 +7,71 @@
 					<h1 class="flex"><a href="/" title="EagleLogger.com">Eagle Logger</a></h1>
 				</paper-toolbar>
 				<div class="menu">
-					<paper-button on-tap="buttonLink" data-link="dashboard" data-type="elp" hidden="{{_calculateMenu('dashboard', user)}}">Dashboard</paper-button>
-					<paper-button on-tap="buttonLink" data-link="callsigns" data-type="elp" hidden="{{_calculateMenu('callsigns', user)}}">Callsigns</paper-button>
-					<paper-button on-tap="buttonLink" data-link="nets" data-type="elp">Nets</paper-button>
+					<a data-link="dashboard"
+						on-tap="menuLink"
+						href="[[siteUrl('/dashboard')]]"
+						hidden="{{_calculateMenu('dashboard', user)}}"
+						>Dashboard</a>
+					<a data-link="callsigns"
+						on-tap="menuLink"
+						href="[[siteUrl('/callsigns')]]"
+						hidden="{{_calculateMenu('callsigns', user)}}"
+						>Callsigns</a>
+					<a data-link="nets"
+						on-tap="menuLink"
+						href="[[siteUrl('/nets')]]"
+						>Nets</a>
+					<a href="http://www.ni4ce.org"
+						title="NI4CE Website"
+						target="_blank"
+						>NI4CE</a>
 				</div>
 				<div class="bottom">
+					<a data-link="login"
+						on-tap="menuLink"
+						href="[[siteUrl('/login')]]"
+						hidden="{{!_calculateMenu('login', user)}}"
+						>Login</a>
+					<a data-link="logout"
+						on-tap="menuLink"
+						href="[[siteUrl('/logout')]]"
+						hidden="{{_calculateMenu('logout', user)}}"
+						>Logout</a>
 					<paper-icon-button icon="help" on-tap="about"></paper-icon-button>
-					<paper-button on-tap="buttonLink" data-link="login" data-type="elp" hidden="{{!_calculateMenu('login', user)}}">Login</paper-button>
-					<paper-button on-tap="buttonLink" data-funk="logout" data-type="elf" hidden="{{_calculateMenu('logout', user)}}">Logout</paper-button>
 				</div>
 			</paper-header-panel>
 			<paper-header-panel main>
 				<paper-toolbar>
 					<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
-					<h1 hidden="{{!searchHide}}">Eagle Logger</h1>
-					<paper-input class="flex" hidden="{{searchHide}}" value="{{search}}" id="search"></paper-input>
-					<span class="flex header" hidden="{{!searchHide}}" id="header"></span>
-					<paper-icon-button icon="search" on-tap="searchShow" hidden="{{searchDisabled}}"></paper-icon-button>
+					<h1 hidden="[[!searchHide]]">Eagle Logger</h1>
+					<paper-input value="{{search}}"
+						id="search"
+						class="flex"
+						hidden="[[searchHide]]"
+						></paper-input>
+					<span class="flex header" hidden="[[!searchHide]]" id="header"></span>
+					<paper-icon-button icon="search"
+						on-tap="searchShow"
+						hidden="[[searchDisabled]]"
+						></paper-icon-button>
+					<paper-menu-button hidden="[[hideVertMenu]]">
+						<paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
+						<ul class="dropdown-content">
+							<li>One</li>
+							<li>Two</li>
+							<li>Three</li>
+							<template is="dom-repeat" items="[[vertMenu]]">
+								<li on-tap="_vertMenu">[[item]]</li>
+							</template>
+						</ul>
+					</paper-menu-button>
 				</paper-toolbar>
 				<div id="content">
 					<elp-home></elp-home>
 				</div>
 			</paper-header-panel>
 		</paper-drawer-panel>
-		<paper-dialog id="about">
-			<h2 style="width: 250px">The Eagle Logger</h2>
-			<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+		<el-dialog heading="The Eagle Logger" id="about">
 			<p>
 				This is a webapp powered by a MySQL database and uses the <a href="https://www.polymer-project.org/1.0/" target="_blank" title="Google's Polymer Project">Polymer Project</a><br>to utilize the <a href="http://webcomponents.org/" target="_blank" title="WebComponents ROCK!">Web Components</a> standard.
 			</p>
@@ -164,113 +81,9 @@
 			<p>
 				Found a bug? Got a question? Email me at <a href="mailto:km4fpa@eaglelogger.com">KM4FPA@EagleLogger.com</a>
 			</p>
-		</paper-dialog>
+		</el-dialog>
 		<paper-toast id="toast"></paper-toast>
 		<iron-localstorage name="user" value="{{user}}"></iron-localstorage>
 	</template>
+	<script src="/scripts/el-main.js"></script>
 </dom-module>
-<script>
-	Polymer({
-		is: 'el-main',
-		behaviors: [
-			Polymer.ELRouter
-		],
-		properties: {
-			header: {
-				type: String,
-				value: ''
-			},
-			search: {
-				type: String,
-				value: '',
-				observer: '_searchChanged'
-			},
-			searchHide: {
-				type: Boolean,
-				value: true
-			},
-			searchDisabled: {
-				type: Boolean,
-				value: true
-			},
-			user: {
-				type: Object
-			}
-		},
-		created: function() {
-			el = document.querySelector('el-main');
-		},
-		ready: function() {
-			this.router();
-			document.querySelector('#spinner').style.display = 'none';
-			setTimeout(function(){
-				console.log("this.user",this.user);
-			}.bind(this),1500);
-		},
-		about: function() {
-			this.$.about.open();
-		},
-		buttonLink: function(event) {
-			var target = findTarget(event, 'paper-button');
-			switch(target.dataset.type) {
-				case 'elp':
-					var page = target.dataset.link;
-					switch(page) {
-						case 'startnet':
-							netId = 'new';
-							page = 'net';
-							break;
-					}
-					this.setPage(page, 'push');
-					break;
-				case 'elf':
-					switch(target.dataset.funk) {
-						case 'logout':
-							this.user = {};
-							this.setPage('home', 'push');
-							break;
-					}
-			}
-
-		},
-		searchDisable: function() {
-			this.searchHide = true;
-			this.searchDisabled = true;
-		},
-		searchEnable: function() {
-			this.search = '';
-			this.searchHide = true;
-			this.searchDisabled = false;
-		},
-		searchShow: function(event) {
-			this.search = '';
-			this.searchHide = !this.searchHide;
-			if(!this.searchHide) {
-				this.$.search.$.input.focus();
-			}
-		},
-		_calculateMenu: function(menuItem, user) {
-			if(!user) return true;
-			if(!user.token) return true;
-			switch(menuItem) {
-				case 'login':
-					return false;
-					break;
-				case 'logout':
-					return false;
-					break;
-				case 'callsigns':
-					return !user.ncs;
-					break;
-				case 'dashboard':
-					return false;
-					break;
-				default:
-					return true;
-			}
-		},
-		_searchChanged: function() {
-			console.log("Search Not Set");
-		},
-	});
-</script>

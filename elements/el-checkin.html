@@ -124,10 +124,10 @@
 		],
 		deleteCheckin: function() {
 			this.deleteYesNo = false;
-			ce.jaxson('nets/delete_checkin',{
+			EL.jaxson('nets/delete_checkin',{
 				net: ce.net.id,
 				cid: this.callsign.id
-			});
+			}, this);
 		},
 		deleteConfirm: function() {
 			this.deleteYesNo = !this.deleteYesNo;
@@ -141,10 +141,10 @@
 		trafficChange: function(event) {
 			this.traffic = event.target.checked;
 			var traffic = this.traffic ? 1 : 0;
-			ce.jaxson('nets/has_traffic',{
+			EL.jaxson('nets/has_traffic',{
 				cid: this.callsign.id,
 				traffic: traffic
-			});
+			},this);
 		},
 
 	});

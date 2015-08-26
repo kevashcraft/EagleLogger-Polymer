@@ -78,7 +78,7 @@
 			}
 		},
 		ready: function() {
-			if(this.callsign.city.length > 0 && this.callsign.city != 'undefined') {
+			if(this.callsign.city && this.callsign.city.length > 0 && this.callsign.city != 'undefined') {
 				this.hideCity = false;
 			}
 		},

@@ -26,28 +26,40 @@
 		<p>
 			<b>Thank you</b> for registering!
 		<p>
-			<b>Here</b> you can update your <paper-button raised on-tap="dialogOpen" data-dialog="information">information</paper-button>
+			<b>Here</b> you can update your <paper-button raised on-tap="dialog" data-dialog="information">information</paper-button>
 		</p>
 		<p>
-			<b>You</b> can also change your <paper-button raised on-tap="dialogOpen" data-dialog="password">password</paper-button>
+			<b>You</b> can also change your <paper-button raised on-tap="dialog" data-dialog="password">password</paper-button>
 		</p>
 	</paper-material>
 
-	<paper-dialog entry-animation="scale-up-animation" id="password" no-cancel-on-outside-click no-auto-focus data-enter="passwordChange">
-		<h2 style="width: 300px">Change Your Password</h2>
-		<paper-icon-button icon="close" dialog-dismiss></paper-icon-button>
+	<el-dialog heading="Change Your Password" id="password" no-outside enter-pressed="passwordChange">
 		<paper-input value="{{password}}" type="password" label="New Password" autofocus></paper-input>
 		<div style="text-align: center">
 			<paper-button on-tap="passwordChange" raised>Update</paper-button>
 		</div>
-	</paper-dialog>
-	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
+	</el-dialog>
+
+	<el-dialog heading="Update Your Information" id="information" no-outside enter-pressed="informationUpdate">
+		<paper-input value="{{name}}" label="Name" autofocus></paper-input>
+		<paper-input value="{{county}}" label="County"></paper-input>
+		<paper-input value="{{city}}" label="City"></paper-input>
+		<paper-input value="{{website}}" label="Website"></paper-input>
+		<paper-input value="{{blurb}}" label="Blurb"></paper-input>
+		<div style="text-align: center">
+			<paper-button on-tap="informationUpdate" raised>Update</paper-button>
+		</div>
+	</el-dialog>
 </template>
 </dom-module>
 <script>
 	Polymer({
 		is: 'elp-dashboard',
 		properties: {
+			authedRequired: {
+				type: Boolean,
+				value: true
+			},
 			info: {
 				type: Object,
 				value: {
@@ -66,16 +78,47 @@
 			Polymer.ELBehavior
 		],
 		ready: function() {
-			this.callsign = el.user.callsign;
+			this.callsign = EL.user.callsign;
 		},
 		passwordChange: function() {
 			this.jaxson('users/change_password', {
-				uid: el.user.uid,
+				uid: EL.user.uid,
 				password: this.password
 			});
 			this.dialog.close();
 		},
+		informationUpdate: function() {
+			this.dialogClose();
+			EL.user.county = this.county;
+			EL.user.city = this.city;
+			EL.user.name = this.name;
+			EL.user.website = this.website;
+			EL.user.blurb = this.blurb;
+			EL.user = JSON.parse(JSON.stringify(EL.user));
+
+			this.jaxson('users/update_information', {
+				cid: EL.user.cid,
+				county: this.county,
+				city: this.city,
+				website: this.website,
+				blurb: this.blurb,
+				name: this.name
+			});
+		},
 		_dialog: function(dialog, target) {
+			switch(dialog) {
+				case 'information':
+					this.name = EL.user.name || '';
+					this.county = EL.user.county || '';
+					this.city = EL.user.city || '';
+					this.website = EL.user.website || '';
+					this.blurb = EL.user.blurb || '';
+					break;
+			}
+			return dialog;
+		},
+		_jaxson: function(info) {
+			console.log("info",info);
 		},
 	});
 </script>

@@ -16,14 +16,13 @@
 
 </style>
 <template>
-	<template is="dom-repeat" items="{{nets}}">
+	<template is="dom-repeat" items="[[nets]]" as="net">
 		<el-net
 			on-tap="netOpen"
-			net="{{item}}"
+			net="[[net]]"
 		></el-net>
 	</template>
 	<paper-fab icon="add" on-tap="netStart" hidden="{{_calculateHidden('startnet')}}"></paper-fab>
-	<iron-ajax on-response="jaxsonResponse" id="jaxson"></iron-ajax>
 </template>
 </dom-module>
 <script>
@@ -39,36 +38,34 @@
 			},
 		},
 		behaviors: [
+			Polymer.ELBase,
 			Polymer.ELBehavior
 		],
 		ready: function() {
-			console.log("I'm REady!");
 			this.jaxson('nets/list_all');
 		},
 		netOpen: function(event) {
 			var target = findTarget(event, 'el-net');
-			netId = target.net.id;
-			el.setPage('net', 'push');
+			EL.setPage(['net'], target.net.id);
 		},
 		netStart: function() {
-			netId = 'new';
-			el.setPage('net', 'push');
+			EL.setPage(['net', 'new']);
 		},
 		setupSSE: function() {
-			this.sse = new EventSource('/jaxson/events/nets_listener?net=' + this.nets[0].id + '&active=' + this.nets[0].active);
+			if(!this.nets || !this.nets[0]) return;
+			this.sse = new EventSource('/jaxson/events/nets_listener?net=' + this.nets[0].id + '&active=' + this.nets[0].active + '&bypass_token=true');
 			this.sse.addEventListener('nets', function(event){
 				this.nets = JSON.parse(event.data);
 			}.bind(this));
 		},
 		_calculateHidden: function(menuItem) {
-			if (!el.user) return true;
+			if (!EL.authed) return true;
 			switch(menuItem) {
 				case 'startnet':
-					return !el.user.ncs;
+					return !EL.user.ncs;
 					break;
 			}
 		},
-
 		_jaxson: function(info) {
 			switch(info.subject) {
 				case 'nets':

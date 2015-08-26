@@ -1,0 +1,119 @@
+<dom-module id="el-dialog">
+<style>
+	h2 {
+		font-size: 21px;
+		margin: 45px;
+		display: block;
+		text-align: center;
+	}
+	paper-icon-button[icon="close"] {
+		position: absolute;
+		top: -13px;
+		right: 0;
+		color: #FFAAAA;
+	}
+	paper-icon-button[icon="close"]:hover {
+		color: #550000;
+	}
+	paper-dialog {
+		padding: 0 25px 25px 25px;
+	}
+</style>
+<template>
+	<paper-dialog id="pd"
+		id="login"
+ 		entry-animation="scale-up-animation"
+ 		no-cancel-on-outside-click="[[noOutside]]"
+ 		no-cancel-on-esc-key="[[noEsc]]">
+		<h2 hidden$="[[!heading]]">[[heading]]</h2>
+		<paper-icon-button icon="close" on-tap="close" hidden="[[hideClose]]"></paper-icon-button>
+		<content></content>
+	</paper-dialog>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-dialog',
+		listeners: {
+			'keydown': '_keyPress',
+			'iron-overlay-closed': '_closed',
+			'iron-overlay-opened': '_opened',
+		},
+		properties: {
+			heading: {
+				type: String
+			},
+			hideClose: {
+				type: Boolean,
+				value: false
+			},
+			openMe: {
+				type: Boolean,
+				value: false
+			},
+			noEsc: {
+				type: Boolean,
+				value: false
+			},
+			noOutside: {
+				type: Boolean,
+				value: false
+			},
+			enterPressed: {
+				type: String,
+				value: null
+			},
+			whenCanceled: {
+				type: String,
+				value: null
+			},
+			ignoreOthers: {
+				type: Boolean,
+				value: false
+			},
+			nextDialog: {
+				type: String,
+			},
+			opened: {
+				type: Boolean,
+				value: false,
+				reflectToAttribute: true
+			},
+		},
+		attached: function() {
+			if(this.openMe) {
+				if(document.readyState === 'complete') this.open();
+				else window.addEventListener('load', function(){ this.open() }.bind(this));
+			}
+		},
+		cancel: function() {
+			this.opened = false;
+			this.$.pd.cancel();
+		},
+		close: function() {
+			this.opened = false;
+			this.$.pd.close();
+			if(this.nextDialog)
+				this.parentNode._dialog(this.nextDialog);
+		},
+		open: function() {
+			this.opened = true;
+			this.$.pd.open();
+		},
+		_closed: function(event) {
+			if(this.$.pd.canceled && this.whenCanceled)
+				this.parentNode[this.whenCanceled]();
+		},
+		_opened: function(event) {
+		},
+		_keyPress: function(e) {
+			if(this.enterPressed != null) {
+				var ENTER = 13;
+	    		if(e.keyCode === ENTER) {
+	    			this.parentNode[this.enterPressed]();
+	    		}
+	    		e.stopPropagation();
+			}
+     	},
+	});
+</script>

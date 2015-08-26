@@ -1,0 +1,68 @@
+<script>
+Polymer.ELMain = {
+	jaxson: function(url,params,that) {
+
+		var that = that || this;
+		// Set url
+		url = '/jaxson/' + url;
+
+		// Parse Parameters
+		var param, value, query = [];
+		for(param in params) {
+			var value = params[param];
+			var param = window.encodeURIComponent(param);
+			if(value != null) {
+				param += '=' + window.encodeURIComponent(value);
+			}
+			query.push(param);
+		}
+		// Add token
+		console.log("this.user",this.user);
+		if(this.user && this.user.token)
+			query.push('token=' + this.user.token);
+
+		// Update url
+		url += '?' + query.join('&');
+
+		console.log("url",url);
+		var jaxson = document.createElement('iron-request');
+		jaxson.completes.then(function(r){
+			var response = r.response;
+			console.log("response",response);
+			if(!response.unauthed && !response.token_valid) {
+				this.logout();
+				if(this.ce.authedRequired) this.setPage(['home']);
+				return;
+			}
+			if(response.toast) {
+				console.log("response.toast",response.toast);
+				var duration = response.toastDuration || 2000;
+				var undo = false;
+				if(response.undoUrl) {
+					duration = response.toastDuration || 9000;
+					this.undoParams = response.undoParams;
+					this.undoUrl = response.undoUrl;
+					this.that = this;
+					undo = true;
+				}
+				this.toast(response.toast, duration, undo);
+			}
+			if(typeof that._jaxson == 'function')
+				that._jaxson(response);
+		}.bind(this));
+		jaxson.send({
+			method: 'get',
+			handleAs: 'json',
+			url: url
+		});
+	},
+	toast: function(message, duration) {
+		var toaster = this.$.toast;
+		duration = duration || 2000;
+		toaster.duration = duration;
+		toaster.text = message;
+		toaster.show();
+	},
+	
+}
+</script>
