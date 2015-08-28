@@ -1,0 +1,64 @@
+:host {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	overflow: hidden;
+}
+
+paper-header-panel[main] {
+	background-color: var(--el-content-background);
+}
+paper-header-panel[drawer] {
+	background-color: var(--el-drawer-background);
+	color: var(--el-drawer-color);
+	font-family: var(--el-drawer-font);
+}
+
+paper-toolbar {
+	background-color: var(--el-toolbar-background);
+}
+
+a[title="EagleLogger.com"], a[title="EagleLogger.com"]:visited {
+	color: orange;
+}
+a[title="EagleLogger.com"] h1 {
+	white-space: nowrap;
+	display: inline-block;
+	font-family: var(--home-link-font);
+	font-size: 32px;
+	text-align: center;
+}
+
+paper-header-panel[main] paper-toolbar h2 {
+	flex: 1;
+}	
+
+/*Vertical Menu*/
+
+paper-menu {
+	--paper-menu-selected-item: {
+		font-weight: normal;
+	};
+	--paper-menu-focused-item-after: {
+		background: none;
+	};
+}
+paper-menu paper-item:hover {
+	cursor: default;
+	color: blue;
+}
+
+.drawer-content {
+	display: flex;
+	flex-direction: column;
+	background: blue;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+

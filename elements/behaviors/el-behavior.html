@@ -1,0 +1,66 @@
+<script>
+Polymer.ELBehaviorImpl = {
+	properties: {
+		animationConfig: {
+			value: function() {
+				return {
+					'show': {
+						name: 'fade-in-animation',
+						node: this,
+						timing: {
+							duration: 350
+						}
+					},
+					'hide': {
+						name: 'slide-right-animation',
+						node: this,
+						timing: {
+							duration: 500
+						}
+					},
+				}
+			}
+		},
+
+	},
+	listeners: {
+		'neon-animation-finish': 'animationComplete'
+	},
+	animationComplete: function() {
+		if(this.opened)
+			this.style.opacity = 1;
+		else
+			this.remove();
+	},
+	animateIn: function() {
+		this.opened = true;
+		this.playAnimation('show');
+	},
+	animateOut: function() {
+		this.opened = false;
+		this.playAnimation('hide');
+	},
+	// load dialog from event
+	dialogEvent: function() {
+		var target = findTarget('dialog', 'data');
+		this._dialog(target.dataset.dialog);
+	},
+	// open dialog by id
+	dialogOpen: function(dialogID) {
+		// close old dialog
+		if(EL.dialog)
+			EL.dialog.close();
+
+		// link new dialog
+		EL.dialog = this.$[dialogID];
+
+		// open new dialog
+		EL.dialog.open();
+	},
+	// pass jaxson request to main jaxson function
+	jaxson: function(url, params) {
+		EL.jaxson(url, params, this);
+	},
+};
+Polymer.ELBehavior = [ Polymer.ELBehaviorBase, Polymer.ELBehaviorImpl, Polymer.NeonAnimationRunnerBehavior ];
+</script>

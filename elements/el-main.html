@@ -1,89 +1,65 @@
 <dom-module id="el-main">
-	<link rel="import" type="css" href="/styles/el-main.css">
+	<!-- import local style sheet -->
+	<link rel="import" type="css" href="/elements/styles/el-main.css">
 	<template>
+		<!-- main drawer controller -->
 		<paper-drawer-panel>
+			<!-- left drawer - menu and control panel -->
 			<paper-header-panel drawer>
+				<!-- drawer toolbar -->
 				<paper-toolbar class="center">
-					<h1 class="flex"><a href="/" title="EagleLogger.com">Eagle Logger</a></h1>
+					<!-- site title and home link -->
+					<a href="/" title="EagleLogger.com">
+						<h1>Eagle Logger</h1>
+					</a>
 				</paper-toolbar>
-				<div class="menu">
-					<a data-link="dashboard"
-						on-tap="menuLink"
-						href="[[siteUrl('/dashboard')]]"
-						hidden="{{_calculateMenu('dashboard', user)}}"
-						>Dashboard</a>
-					<a data-link="callsigns"
-						on-tap="menuLink"
-						href="[[siteUrl('/callsigns')]]"
-						hidden="{{_calculateMenu('callsigns', user)}}"
-						>Callsigns</a>
-					<a data-link="nets"
-						on-tap="menuLink"
-						href="[[siteUrl('/nets')]]"
-						>Nets</a>
-					<a href="http://www.ni4ce.org"
-						title="NI4CE Website"
-						target="_blank"
-						>NI4CE</a>
-				</div>
-				<div class="bottom">
-					<a data-link="login"
-						on-tap="menuLink"
-						href="[[siteUrl('/login')]]"
-						hidden="{{!_calculateMenu('login', user)}}"
-						>Login</a>
-					<a data-link="logout"
-						on-tap="menuLink"
-						href="[[siteUrl('/logout')]]"
-						hidden="{{_calculateMenu('logout', user)}}"
-						>Logout</a>
-					<paper-icon-button icon="help" on-tap="about"></paper-icon-button>
+				<!-- drawer content -->
+				<div class="drawer-content">
+					<!-- main menu -->
+					<el-menu authed="[[authed]]"></el-menu>
+					<div id="conpan-container"></div>
+					<!-- chat box -->
+					<el-chat></el-chat>
 				</div>
 			</paper-header-panel>
+			<!-- content window -->
 			<paper-header-panel main>
+				<!-- page toolbar -->
 				<paper-toolbar>
+					<!-- drawer button [hidden in narrow] -->
 					<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
-					<h1 hidden="[[!searchHide]]">Eagle Logger</h1>
-					<paper-input value="{{search}}"
-						id="search"
-						class="flex"
-						hidden="[[searchHide]]"
-						></paper-input>
-					<span class="flex header" hidden="[[!searchHide]]" id="header"></span>
-					<paper-icon-button icon="search"
-						on-tap="searchShow"
-						hidden="[[searchDisabled]]"
-						></paper-icon-button>
-					<paper-menu-button hidden="[[hideVertMenu]]">
+					<!-- site title [hidden in narrow] -->
+					<h2>[[header]]</h2>
+					<!-- vertical menu -->
+					<paper-menu-button hidden="[[vertMenuHidden]]">
 						<paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-						<ul class="dropdown-content">
-							<li>One</li>
-							<li>Two</li>
-							<li>Three</li>
+						<paper-menu class="dropdown-content" selected="2">
 							<template is="dom-repeat" items="[[vertMenu]]">
-								<li on-tap="_vertMenu">[[item]]</li>
+								<paper-item on-tap="vertMenuAction">[[item]]</paper-item>
 							</template>
-						</ul>
+						</paper-menu>
 					</paper-menu-button>
 				</paper-toolbar>
-				<div id="content">
-					<elp-home></elp-home>
-				</div>
+				<!-- main content -->
+				<div id="content"></div>
 			</paper-header-panel>
 		</paper-drawer-panel>
-		<el-dialog heading="The Eagle Logger" id="about">
+		<!-- About Dialog -->
+		<el-dialog heading="About Eagle Logger" id="about">
 			<p>
 				This is a webapp powered by a MySQL database and uses the <a href="https://www.polymer-project.org/1.0/" target="_blank" title="Google's Polymer Project">Polymer Project</a><br>to utilize the <a href="http://webcomponents.org/" target="_blank" title="WebComponents ROCK!">Web Components</a> standard.
 			</p>
-			<p>
-				The source can be found on <a href="https://github.com/kevashcraft/eaglelogger" target="_blank" title="EagleLogger on GitHub">GitHub</a>. Feel free to contribute!
+			<p>would be c
+				The source can be found on <a href="https://github.com/kevashcraft/eaglelogger" target="_blank" title="EagleLogger Source Code">GitHub</a>. Feel free to contribute!
 			</p>
 			<p>
 				Found a bug? Got a question? Email me at <a href="mailto:km4fpa@eaglelogger.com">KM4FPA@EagleLogger.com</a>
 			</p>
 		</el-dialog>
+		<!-- Toaster -->
 		<paper-toast id="toast"></paper-toast>
-		<iron-localstorage name="user" value="{{user}}"></iron-localstorage>
+		<!-- Local Storage -->
+		<iron-localstorage name="user" value="{{user}}" on-iron-localstorage-load="userInit" on-iron-localstorage-load-empty="userInit"></iron-localstorage>
 	</template>
-	<script src="/scripts/el-main.js"></script>
 </dom-module>
+<script src="/elements/scripts/el-main.js"></script>

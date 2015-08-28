@@ -18,19 +18,18 @@ class Jaxson
 
 		$subject = self::$response['subject'] = strtolower($url[2]);
 		$action = self::$response['action'] = strtolower($url[3]);
-		$unauthed = self::$unauthed = array(
-			'events' => array(
-				'nets_listener',
-				'net_listener',
-			),
-			'nets' => array(
+		$unauthed = self::$unauthed = [
+			'events' => [
+				'listener',
+			],
+			'nets' => [
 				'list_all',
 				'retrieve_entry',
-			),
-			'users' => array(
+			],
+			'users' => [
 				'login',
-			),
-		);
+			],
+		];
 
 		if(in_array($action, $unauthed[$subject])) {
 			self::$response['unauthed'] = true;

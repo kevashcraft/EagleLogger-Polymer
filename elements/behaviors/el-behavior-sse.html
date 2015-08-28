@@ -1,0 +1,64 @@
+<script>
+// Server Sent Events, creates sse with listeners and parameters, fires received messages as event
+Polymer.ELBehaviorSSE = {
+	// sets a listener
+	sseListener: function(listener, param, that, noreset) {
+		// create the listeners, if they don't already exist
+		if(!this.sseListeners) this.sseListeners = {};
+		// set given listener
+		this.sseListeners[listener] = { param: param, that: that };
+		// reset sse
+		if(!noreset)
+			this.sseReset();
+	},
+	// deletes a listener
+	sseListenerDelete: function(listener, noreset) {
+		// remove the listener
+		delete(this.sseListeners[listener]);
+		// reset sse if any listeners are left
+		if(!noreset && Object.keys(this.sseListeners).length > 0)
+			this.sseReset();
+	},
+	// (re)sets the sse connection
+	sseReset: function() {
+		console.log("this.sseListeners",this.sseListeners);
+		// close existing sse
+		if(this.sse) {
+			this.sse.close();
+		}
+
+		// parse listeners
+		var listeners = [];
+		for(var listener in this.sseListeners) {
+			if(!this.sseListeners.hasOwnProperty(listener)) continue;
+			listeners.push(listener + '=' + this.sseListeners[listener].param);
+		}
+
+		// set base url
+		var url = '/responders/events/listener?';
+		// add listener variables
+		url += listeners.join('&');
+
+		// create sse
+		this.sse = new EventSource(url);
+
+		// fire message event
+		this.sse.onmessage = function() {
+			// get sse event
+			var sseEvent = event.data;
+			// get the listener and receiver
+			var listener;
+			var that;
+			// ensure listener exists
+			if(listener = this.sseListeners[sseEvent]) {
+				// fire on that
+				if(that = listener.that) {
+					that.fire(sseEvent);
+				} else { // fire on this
+					this.fire(sseEvent);
+				}
+			}
+		}.bind(this);
+	}
+};
+</script>
