@@ -1,5 +1,6 @@
 <dom-module id="el-main">
 	<!-- import local style sheet -->
+	<style include="el-style"></style>
 	<link rel="import" type="css" href="/elements/styles/el-main.css">
 	<template>
 		<!-- main drawer controller -->
@@ -31,11 +32,11 @@
 					<!-- site title [hidden in narrow] -->
 					<h2>[[header]]</h2>
 					<!-- vertical menu -->
-					<paper-menu-button hidden="[[vertMenuHidden]]">
+					<paper-menu-button hidden="[[vertMenuHidden]]" vertical-align="top" vertical-offset="45" horizontal-align="right" horizontal-offset="25">
 						<paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
-						<paper-menu class="dropdown-content" selected="2">
+						<paper-menu class="dropdown-content" on-iron-select="vertMenuAction">
 							<template is="dom-repeat" items="[[vertMenu]]">
-								<paper-item on-tap="vertMenuAction">[[item]]</paper-item>
+								<paper-item>[[item]]</paper-item>
 							</template>
 						</paper-menu>
 					</paper-menu-button>
@@ -44,6 +45,7 @@
 				<div id="content"></div>
 			</paper-header-panel>
 		</paper-drawer-panel>
+		<el-login-dialogs></el-login-dialogs>
 		<!-- About Dialog -->
 		<el-dialog heading="About Eagle Logger" id="about">
 			<p>

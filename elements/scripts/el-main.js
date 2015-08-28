@@ -1,6 +1,7 @@
 Polymer({
 	is: 'el-main',
 	behaviors: [
+		Polymer.ELBehaviorDialog,
 		Polymer.ELBehaviorRouter,
 		Polymer.ELBehaviorSSE,
 	],
@@ -21,13 +22,11 @@ Polymer({
 		}
 	},
 	listeners: {
-		'maybe-maybe': 'maybe'
 	},
+	observers: [
+		'dialogFit(userNew)'
+	],
 	// 
-	// m
-	maybe: function() {
-		console.log("SSMAYBE");
-	},
 	created: function() {
 		// link to global EL variable
 		EL = this;
@@ -105,7 +104,6 @@ Polymer({
 		// toast!
 		toaster.show();
 	},
-	// login the user
 	userLogin: function(user) {
 		// set the user object
 		this.user = user;
@@ -140,6 +138,28 @@ Polymer({
 		this._router();
 	},
 	vertMenuAction: function() {
-		console.log("event.target.innerText",event.target.innerText);
+		// get menu
+		var menu = event.target;
+		// find the action
+		var action = this.vertMenu[menu.selected].replace(/ /g, '').toLowerCase();
+		// reset menu
+		menu.selected = -1;
+		// main switch
+		switch(action) {
+			case 'login':
+					this.$$('el-login-dialogs').open();
+				break;
+			case 'logout':
+					this.userLogout();
+				break;
+		}
+	},
+	// dialog switch
+	_dialog: function(dialog) {
+		switch(dialog) {
+
+		}
+
+		this.dialogOpen(dialog);
 	},
 });

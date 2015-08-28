@@ -1,0 +1,33 @@
+<dom-module id="el-style-flex">
+	<style>
+		/*FlexBox*/
+		.flex-box {
+			display: flex;
+			justify-content: flex-start;
+		}
+		.flex-box.column {
+			flex-direction: column;
+		}
+		.flex-box.around {
+			justify-content: space-around;
+		}
+		.flex-box.align {
+			align-items: center;
+		}
+
+		.flex-box.stretch > * {
+			flex-grow: 2;
+		}
+
+		.flex-box.margin {
+			margin: 15px;
+		}
+
+		.flex,.flex-stretch {
+			flex-grow: 2;
+		}
+		.flex-noshrink {
+			flex-shrink: 0;
+		}
+	</style>
+</dom-module>

@@ -31,7 +31,9 @@ Polymer.ELBehaviorSSE = {
 		var listeners = [];
 		for(var listener in this.sseListeners) {
 			if(!this.sseListeners.hasOwnProperty(listener)) continue;
-			listeners.push(listener + '=' + this.sseListeners[listener].param);
+			var param;
+			if(param = this.sseListeners[listener].param)
+				listeners.push(listener + '=' + param);
 		}
 
 		// set base url

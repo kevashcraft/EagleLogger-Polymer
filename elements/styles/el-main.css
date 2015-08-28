@@ -1,11 +1,5 @@
 :host {
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	overflow: hidden;
+	opacity: 1;
 }
 
 paper-header-panel[main] {
@@ -35,6 +29,12 @@ a[title="EagleLogger.com"] h1 {
 paper-header-panel[main] paper-toolbar h2 {
 	flex: 1;
 }	
+
+paper-toolbar paper-menu-button paper-item {
+	--paper-item: {
+		justify-content: flex-end;
+	};
+}
 
 /*Vertical Menu*/
 

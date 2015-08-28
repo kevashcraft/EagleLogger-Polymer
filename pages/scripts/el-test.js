@@ -1,7 +1,7 @@
 Polymer({
 	is: 'el-test',
 	behaviors: [
-		Polymer.ELBehavior,
+		Polymer.ELBehaviors,
 	],
 	properties: {
 		info: {
@@ -19,6 +19,7 @@ Polymer({
 			
 		if(EL.sseListener) {
 			EL.sseListener('teste', 'high', this);
+			EL.sseListener('newo', false , this);
 		}
 
 	},

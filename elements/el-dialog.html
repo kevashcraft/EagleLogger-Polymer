@@ -1,32 +1,38 @@
 <dom-module id="el-dialog">
-<style>
-	h2 {
-		font-size: 21px;
-		margin: 45px;
-		display: block;
-		text-align: center;
-	}
-	paper-icon-button[icon="close"] {
-		position: absolute;
-		top: -13px;
-		right: 0;
-		color: #FFAAAA;
-	}
-	paper-icon-button[icon="close"]:hover {
-		color: #550000;
-	}
-	paper-dialog {
-		padding: 0 25px 25px 25px;
-	}
-</style>
+	<style>
+		paper-dialog {
+			padding: 25px;
+			padding-top: 0;
+		}
+
+		paper-icon-button {
+			position: absolute;
+			top: 0;
+			margin: 0;
+		}
+		paper-icon-button[icon="editor:mode-edit"] {
+			left: 0;
+		}
+		paper-icon-button[icon="close"] {
+			right: 0;
+		}
+
+		h2 {
+			padding: 25px;
+			text-align: center;
+		}
+	</style>
 <template>
-	<paper-dialog id="pd"
-		id="login"
- 		entry-animation="scale-up-animation"
- 		no-cancel-on-outside-click="[[noOutside]]"
- 		no-cancel-on-esc-key="[[noEsc]]">
-		<h2 hidden$="[[!heading]]">[[heading]]</h2>
-		<paper-icon-button icon="close" on-tap="close" hidden="[[hideClose]]"></paper-icon-button>
+	<paper-dialog
+		id="dialog"
+		animation-config="[[animationConfig]]"
+ 		no-cancel-on-outside-click="[[noClick]]"
+ 		no-cancel-on-esc-key="[[noEsc]]"
+ 		no-auto-focus
+ 		>
+		<paper-icon-button icon="editor:mode-edit" on-tap="_edit" hidden="[[noEdit]]"></paper-icon-button>
+		<paper-icon-button icon="close" on-tap="close" hidden="[[noClose]]"></paper-icon-button>
+		<h2>[[heading]]</h2>
 		<content></content>
 	</paper-dialog>
 </template>
@@ -36,43 +42,31 @@
 		is: 'el-dialog',
 		listeners: {
 			'keydown': '_keyPress',
-			'iron-overlay-closed': '_closed',
 			'iron-overlay-opened': '_opened',
 		},
 		properties: {
 			heading: {
 				type: String
 			},
-			hideClose: {
+			editable: {
 				type: Boolean,
 				value: false
 			},
-			openMe: {
+			noClose: {
 				type: Boolean,
 				value: false
+			},
+			noEdit: {
+				type: Boolean,
+				value: true
 			},
 			noEsc: {
 				type: Boolean,
 				value: false
 			},
-			noOutside: {
+			noClick: {
 				type: Boolean,
 				value: false
-			},
-			enterPressed: {
-				type: String,
-				value: null
-			},
-			whenCanceled: {
-				type: String,
-				value: null
-			},
-			ignoreOthers: {
-				type: Boolean,
-				value: false
-			},
-			nextDialog: {
-				type: String,
 			},
 			opened: {
 				type: Boolean,
@@ -80,40 +74,58 @@
 				reflectToAttribute: true
 			},
 		},
+		// grab the dialog when attached
 		attached: function() {
-			if(this.openMe) {
-				if(document.readyState === 'complete') this.open();
-				else window.addEventListener('load', function(){ this.open() }.bind(this));
-			}
-		},
-		cancel: function() {
-			this.opened = false;
-			this.$.pd.cancel();
+			this.dialog = this.$.dialog;
 		},
 		close: function() {
+			// change opened attribute
 			this.opened = false;
-			this.$.pd.close();
-			if(this.nextDialog)
-				this.parentNode._dialog(this.nextDialog);
+			// close dialog
+			this.dialog.close();
+		},
+		// passes fit to the dialog
+		fit: function() {
+			this.dialog.fit();
 		},
 		open: function() {
+			// show edit button if editable
+			if(this.editable) this.noEdit = false;
+			// change opened attribute
 			this.opened = true;
-			this.$.pd.open();
+			// open dialog
+			this.dialog.open();
 		},
-		_closed: function(event) {
-			if(this.$.pd.canceled && this.whenCanceled)
-				this.parentNode[this.whenCanceled]();
+		// fires edit event
+		_edit: function() {
+			// hide button
+			this.noEdit = true;
+			// fire event
+			this.fire('edit');
 		},
 		_opened: function(event) {
+			// ignore if not for me
+			if(event.target.tagName != this.dialog.tagName) return;
+			// refit dialog
+			this.dialog.fit();
+			// autofocus input
+			var input = this.dialog.querySelector('[autofocus]');
+			if(input) {
+				var tagName = input.tagName.toLowerCase();
+				switch(tagName) {
+					case 'paper-input':
+							console.log("input",input);
+							input.$.input.focus();
+						break;
+					default:
+						input.focus();
+				}
+			}
 		},
 		_keyPress: function(e) {
-			if(this.enterPressed != null) {
-				var ENTER = 13;
-	    		if(e.keyCode === ENTER) {
-	    			this.parentNode[this.enterPressed]();
-	    		}
-	    		e.stopPropagation();
-			}
+			// fire enter event
+			if(e.keyCode === 13)
+		    	this.fire('enter');
      	},
 	});
 </script>

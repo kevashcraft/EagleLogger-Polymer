@@ -18,10 +18,11 @@
 	</style>
 	<template>
 		<div class="main">
-			<a on-tap="_tap" href="/" hidden="[[authed]]">Dashboard</a>
+			<a on-tap="_tap" href="/home">Home</a>
 			<a on-tap="_tap" href="/dashboard" hidden="[[authed]]">Dashboard</a>
-			<a on-tap="_tap" href="/callsigns" >Callsigns</a>
-			<a on-tap="_tap" href="/nets" >Nets</a>
+			<a on-tap="_tap" href="/test">Test</a>
+			<a on-tap="_tap" href="/callsigns">Callsigns</a>
+			<a on-tap="_tap" href="/nets">Nets</a>
 			<a href="http://www.ni4ce.org" title="NI4CE Website" target="_blank" >NI4CE</a>
 		</div>
 	</template>
@@ -54,11 +55,11 @@
 			// get link href
 			var href = event.target.href;
 			// remove our domain name plus trailing slash
-			var suburl = substr(this.domain.length + 1);
+			var suburl = href.substr(this.domain.length + 1);
 			// split into location array
 			var location = suburl.split('/');
 			// pass that array to setPage
-			BPC.setPage(location);
+			EL.setPage(location);
 		},
 	});
 </script>

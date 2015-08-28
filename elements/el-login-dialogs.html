@@ -1,0 +1,154 @@
+<dom-module id="el-login-dialogs">
+<style include="el-style-flex"></style>
+<style>
+	el-dialog {
+		text-align: center;
+	}
+	el-dialog div:last-of-type {
+		min-width: 250px;
+		margin: 35px 0;
+	}
+
+	paper-button {
+		font-size: 18px;
+	}
+
+	:host {
+	}
+
+
+	.width-150 {
+		display: inline-block;
+		width: 150px;
+	}
+
+	paper-input {
+		--paper-input-container-input: {
+			text-align: center;
+		};
+	}
+
+	paper-input.input-upper-case {
+		--paper-input-container-input: {
+			text-align: center;
+			text-transform: uppercase;
+		};
+	}
+
+	div paper-input:last-of-type {
+		margin-left: 15px;
+	}
+</style>
+<template>
+	<el-dialog id="login" heading="Login to Eagle Logger" no-close>
+		<div>
+			<paper-input label="Call Sign" value="{{callsign}}" id="callsign" class="input-upper-case width-150" autofocus$="[[!callsign]]"></paper-input>
+		</div>
+		<div>
+			<paper-input label="Password" value="{{password}}" type="password" autofocus></paper-input>
+		</div>
+		<div class="flex-box around align">
+			<el-tip tip="New User">
+				<paper-icon-button icon="social:group-add" on-tap="dialogEvent" data-dialog="register"></paper-icon-button>
+			</el-tip>
+			<paper-button on-tap="login" raised>Login</paper-button>
+			<el-tip tip="Forgotten Password">
+				<paper-icon-button icon="communication:vpn-key" on-tap="dialogEvent" data-dialog="reset"></paper-icon-button>
+			</el-tip>
+		</div>
+	</el-dialog>
+	<el-dialog id="register" heading="Regiter with Eagle Logger" no-close>
+		<div>
+			<paper-input label="Call Sign" value="{{callsign}}" class="input-upper-case width-150" autofocus allowed-pattern="[a-zA-Z0-9]*" prevent-invalid-input maxlength="6"></paper-input>
+		</div>
+		<div class="flex-box">
+			<paper-input label="Password" value="{{password}}" type="password" char-counter auto-validate minlength="8" error-message="Needs to be more than 7" on-change="_passwordConfirmValidator"></paper-input>
+			<paper-input label="Confirm Password" value="{{passwordConfirm}}" type="password" id="passwordConfirm" disabled$="[[passwordConfirmDisabled]]" on-blur="_passwordConfirmValidate" on-keyup="_passwordConfirmValidator" error-message="Doesn't match"></paper-input>
+		</div>
+		<div>
+			<el-tip tip="Callsign Confirmation">
+				<paper-input label="ARRL Email Address" disabled value="[[email]]"></paper-input>
+			</el-tip>
+		</div>
+		<div class="flex-box around align">
+			<el-tip tip="Back to Login">
+				<paper-icon-button icon="arrow-back" on-tap="dialogEvent" data-dialog="login"></paper-icon-button>
+			</el-tip>
+			<paper-button on-click="userRegister" raised hidden="[[!userNew]]">Register</paper-button>
+		</div>
+	</el-dialog>
+	<el-dialog id="reset" heading="Password Reset">
+		<div hidden="[[resetHappened]]">
+			<paper-input label="Call Sign" value="{{callsign}}" class="input-upper-case width-150" autofocus allowed-pattern="[a-zA-Z0-9]*" prevent-invalid-input maxlength="6"></paper-input>
+		</div>
+		<div hidden="[[!resetHappened]]">
+			<strong>Check your ARRL email for a link!</strong>
+		</div>
+		<div class="flex-box around align">
+			<el-tip tip="Back to Login">
+				<paper-icon-button icon="arrow-back" on-tap="dialogEvent" data-dialog="login" hidden="[[resetHappened]]"></paper-icon-button>
+			</el-tip>
+			<paper-button on-tap="reset" raised hidden="[[resetHappened]]">Reset</paper-button>
+			<paper-button on-tap="dialogClose" raised hidden="[[!resetHappened]]">OK</paper-button>
+		</div>
+	</el-dialog>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-login-dialogs',
+		properties: {
+			email: {
+				type: String,
+				computed: '__email(callsign)'
+			},
+			passwordConfirmDisabled: {
+				type: Boolean,
+				computed: '__passwordConfirmDisabled(password)',
+				value: true
+			},
+		},
+		behaviors: [
+			Polymer.ELBehaviorBase,
+			Polymer.ELBehaviorDialog,
+		],
+		// opens the login dialog
+		open: function() {
+			this.callsign = EL.user.callsign;
+			this.dialogOpen('login');
+		},
+		//
+		_passwordConfirmValidate: function() {
+			if(this.passwordConfirmDisabled) return;
+			this.passwordConfirmTouched = true;
+			this._passwordConfirmValidator();
+		},
+		// confirms the passwords match
+		_passwordConfirmValidator: function() {
+			if(!this.passwordConfirmTouched) return;
+			this.$.passwordConfirm.invalid = this.password != this.passwordConfirm;
+		},
+		// sets the email address
+		__email: function() {
+			return this.callsign ? this.callsign + '@arrl.net' : '';
+		},
+		// returns true if password over 7
+		__passwordConfirmDisabled: function() {
+			return this.password < 7;
+		},
+		// login the user
+		// local dialog
+		_dialog: function(dialog) {
+			switch(dialog) {
+				case 'register':
+					// this.passwordConfirmTouched = false;
+					break;
+				case 'reset':
+						this.resetHappened = false;
+					break;
+			}
+
+			this.dialogOpen(dialog);
+		},
+	});
+</script>

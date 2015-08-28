@@ -1,5 +1,5 @@
 <script>
-Polymer.ELBehaviorImpl = {
+Polymer.ELBehaviorsImpl = {
 	properties: {
 		animationConfig: {
 			value: function() {
@@ -40,27 +40,10 @@ Polymer.ELBehaviorImpl = {
 		this.opened = false;
 		this.playAnimation('hide');
 	},
-	// load dialog from event
-	dialogEvent: function() {
-		var target = findTarget('dialog', 'data');
-		this._dialog(target.dataset.dialog);
-	},
-	// open dialog by id
-	dialogOpen: function(dialogID) {
-		// close old dialog
-		if(EL.dialog)
-			EL.dialog.close();
-
-		// link new dialog
-		EL.dialog = this.$[dialogID];
-
-		// open new dialog
-		EL.dialog.open();
-	},
 	// pass jaxson request to main jaxson function
 	jaxson: function(url, params) {
 		EL.jaxson(url, params, this);
 	},
 };
-Polymer.ELBehavior = [ Polymer.ELBehaviorBase, Polymer.ELBehaviorImpl, Polymer.NeonAnimationRunnerBehavior ];
+Polymer.ELBehaviors = [ Polymer.ELBehaviorBase, Polymer.ELBehaviorDialog, Polymer.ELBehaviorsImpl, Polymer.NeonAnimationRunnerBehavior ];
 </script>

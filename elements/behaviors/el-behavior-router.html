@@ -3,10 +3,11 @@ Polymer.ELBehaviorRouter = {
 	// define the pages
 	pages: {
 		test: 'el-test',
-		login: 'elp-login',
-		net: 'elp-net',
-		nets: 'elp-nets',
-		callsigns: 'elp-callsigns',
+		home: 'el-home',
+		login: 'el-login',
+		net: 'el-net',
+		nets: 'el-nets',
+		callsigns: 'el-callsigns',
 	},
 	// loads a page in the browser
 	setPage: function(location, replace) {
@@ -21,6 +22,7 @@ Polymer.ELBehaviorRouter = {
 		// get the new url from location
 		var url = '/';
 		if(this.location.length > 0) url += this.location.join('/');
+		console.log("elem",elem);
 		// create new history event
 		this._stately({
 			element: page,
@@ -99,7 +101,7 @@ Polymer.ELBehaviorRouter = {
 		var location = this.__location(location);
 
 		// Define first level page, if none go home
-		var page = this.pages[location[0]] || 'home';
+		var page = this.pages[location[0]] || 'el-home';
 
 		// Find the page by cycling through the location
 		for(i in location) {
@@ -111,8 +113,8 @@ Polymer.ELBehaviorRouter = {
 		}
 
 		// If authed and trying to go to login, go to dashboard
-		if(this.authed && page == 'elp-login')
-			page = 'elp-dashboard';
+		if(this.authed && page == 'el-login')
+			page = 'el-dashboard';
 
 		// return the page
 		return page;

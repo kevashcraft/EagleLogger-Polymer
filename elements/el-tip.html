@@ -1,0 +1,39 @@
+<dom-module id="el-tip">
+<style>
+	:host {
+		--paper-tooltip-background: black;
+
+		--paper-tooltip: {
+			font-size: 12px;
+		};
+
+	}
+</style>
+
+<template>
+	<content></content>
+	<paper-tooltip animation-config="[[animationConfig]]" id="pt" margin-top="1">[[tip]]</paper-tooltip>
+</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-tip',
+		properties: {
+			animationConfig: {
+				type: Object,
+				value: function() {
+					return {
+						'entry': [{
+							name: 'fade-in-animation',
+							node: this.$.pt
+						}],
+						'exit': [{
+							name: 'fade-out-animation',
+							node: this.$.pt
+						}]				
+					}
+				}
+			}
+		},
+	});
+</script>
