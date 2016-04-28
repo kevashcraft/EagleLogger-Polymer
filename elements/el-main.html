@@ -1,0 +1,290 @@
+<dom-module id="el-main">
+	<style include="logical-style-flex"></style>
+	<style include="el-style"></style>
+	<style>
+
+			paper-listbox {
+				outline: none;
+			}
+
+			#MainViewer {
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+			}
+
+			#ControlPanelContainer {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			}
+	</style>
+	<template>
+		<paper-drawer-panel drawer-width="325px">
+			<paper-header-panel drawer>
+				<paper-toolbar>
+					<a href="/" class="home-link">EagleLogger</a>
+				</paper-toolbar>
+				<div id="ControlPanelContainer"></div>
+			</paper-header-panel>
+			<paper-header-panel main>
+				<paper-toolbar>
+					<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+					<span class="page-title">[[PageTitle]]</span>
+					<span class="flex"></span>
+					<span hidden="[[!Site.isAuthed]]">
+						<span>[[Site.SiteUser.Callsign]]</span>
+					</span>
+					<paper-menu-button horizontal-align="right" horizontal-offset="25" vertical-offset="45">
+						<paper-icon-button icon="more-vert" class="dropdown-trigger"></paper-icon-button>
+						<paper-listbox class="dropdown-content" selected="{{VirtMenuSelected}}" attr-for-selected="VirtMenu">
+							<paper-item VirtMenu="SiteUserInfo" hidden="[[!Site.isAuthed]]">[[Site.SiteUser.Callsign]]</paper-item>
+							<paper-item VirtMenu="SiteUserLogin" hidden="[[Site.isAuthed]]">Login</paper-item>
+							<paper-item VirtMenu="Logout" hidden="[[!Site.isAuthed]]">Logout</paper-item>
+							<paper-item VirtMenu="About">About</paper-item>
+						</paper-listbox>
+					</paper-menu-button>
+				</paper-toolbar>
+				<div id="MainViewer"></div>
+			</paper-header-panel>
+		</paper-drawer-panel>
+		<logical-dialog id="About" heading="About"></logical-dialog>
+		<logical-dialog id="SiteUserLogin" heading="Login" on-ld-enter="SiteUserLogin">
+			<paper-input label="Callsign" value="{{SiteUser.Callsign}}" autofocus></paper-input>
+			<paper-input label="Password" value="{{SiteUser.SiteUserPassword}}" type="password"></paper-input>
+			<div class="flex-box around margin">
+				<paper-button on-tap="SiteUserLogin" raised>Go!</paper-button>
+			</div>
+			<div class="margin">
+				<span>need a</span>
+				<a on-tap="dialog" data-dialog="SiteUserNewAccount">new account</a>
+				<span> or a</span>
+				<a on-tap="dialog" data-dialog="PasswordReset">password reset</a>
+				<span>?</span>
+			</div>
+		</logical-dialog>
+		<logical-dialog id="SiteUserNewAccount" heading="New Account">
+			<paper-input label="Callsign" value="{{SiteUser.Callsign}}" minlength="4" maxlength="6" error-message="A Callsign is Required" required autofocus></paper-input>
+			<paper-input label="ARRL Email Address" value="{{SiteUser.EmailAddress}}" type="email" disabled></paper-input>
+			<div class="flex-box around margin">
+				<paper-button on-tap="SiteUserNewAccount" raised>Create Account</paper-button>
+			</div>
+			<div class="margin">
+				<span>ARRL email forwarding must be setup</span>
+			</div>
+		</logical-dialog>
+		<logical-dialog id="PasswordReset" heading="Reset Password">
+			<paper-input label="Callsign" value="{{SiteUser.Callsign}}" minlength="4" maxlength="6" error-message="A Callsign is Required" required></paper-input>
+			<div class="flex-box around margin">
+				<paper-button on-tap="LoginPasswordReset" raised>Reset Password</paper-button>
+			</div>
+		</logical-dialog>
+		<logical-dialog id="SiteUserPasswordSet" heading="[[SiteUser.Callsign]] Password" on-ld-enter="SiteUserPasswordSet" hide-close no-esc>
+			<paper-input label="Password" value="{{SiteUser.SiteUserPassword}}" type="password" minlength="6" autofocus error-message="Must be 6 or more characters"></paper-input>
+			<div class="flex-box around margin">
+				<paper-button on-tap="SiteUserPasswordSet" raised>Set Password</paper-button>
+			</div>
+		</logical-dialog>
+		<logical-dialog id="SiteUserInfo" heading="[[Site.SiteUser.Callsign]] Info">
+			<paper-input label="Name" value="{{SiteUser.CallsignName}}" autofocus></paper-input>
+			<paper-input label="Radio" value="{{SiteUser.CallsignRadio}}"></paper-input>
+			<paper-input label="Antenna" value="{{SiteUser.CallsignAntenna}}"></paper-input>
+			<paper-input label="Password" value="{{SiteUser.SiteUserPassword}}" type="password" minlength="6" error-message="Must be 6 or more characters"></paper-input>
+			<div class="flex-box around margin">
+				<paper-button on-tap="SiteUserInfoUpdate" raised>Update Info</paper-button>
+			</div>
+		</logical-dialog>
+		<paper-toast id="Toast"></paper-toast>
+		<iron-localstorage name="Site" value="{{Site}}"></iron-localstorage>
+	</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-main',
+
+
+		properties: {
+
+		},
+
+
+		behaviors: [
+
+			Polymer.LogicalSiteBehaviors,
+			Polymer.LogicalPageBaseBehavior,
+			Polymer.LogicalPageDialogBehavior,
+		],
+
+
+		listeners: {
+			'QueryVariablesSet': 'onQueryVariablesSet',
+		},
+
+
+		observers: [
+			'VirtMenuSelectedOnChange(VirtMenuSelected)',
+			'SiteUserOnChange(SiteUser.*)',
+		],
+
+		created: function() {
+
+			this.PageDefault = 'home';
+			this.Pages = {
+					home: 'el-home',
+					net: {
+						default: 'el-net',
+						list: 'el-net-list',
+					},
+			};
+			this.SiteTitle = 'EagleLogger';
+
+			this.SSEEnabled = true;
+
+		},		
+
+		attached: function() {
+		
+			this.SiteUser = {};
+
+		},
+		
+
+		SiteUserInfoUpdate: function() {
+		
+			this.jaxson('Site/SiteUserInfoUpdate', this.SiteUser);
+		},
+		
+
+
+		SiteUserLogin: function() {
+		
+			this.jaxson('Site/SiteUserLogin', this.SiteUser);
+		},
+		
+
+
+
+		SiteUserOnChange: function(info) {
+		
+			switch(info.path) {
+				case 'SiteUser.Callsign':
+					if(this.SiteUser.Callsign != this.SiteUser.Callsign.toUpperCase()) {
+						this.set('SiteUser.Callsign', this.SiteUser.Callsign.toUpperCase());
+					}
+					this.set('SiteUser.EmailAddress', this.SiteUser.Callsign + '@arrl.net');
+				break;
+			}
+		},
+		
+
+		SiteUserNewAccount: function() {
+		
+			if(this._validate()) {
+				this.jaxson('Site/SiteUserNewAccount', this.SiteUser);
+				this.dialogClose();
+			}
+		},
+
+		SiteUserPasswordSet: function() {
+		
+			if(this._validate()) {
+				this.jaxson('Site/SiteUserPasswordSet', this.SiteUser);
+			}
+		},
+		
+		
+
+		onQueryVariablesSet: function() {
+		
+			if(this.QueryVariables.NewAccount) {
+				console.log("this.QueryVariables", this.QueryVariables);
+				this.SiteUserNewAccountPasswordSet = true;
+				this.jaxson('Site/SiteUserLogin', { Callsign: this.QueryVariables.Callsign, SiteUserPassword: this.QueryVariables.Token});
+			}
+		},
+		
+
+		VirtMenuSelectedOnChange: function() {
+		
+			if(this.VirtMenuSelected) {
+				switch(this.VirtMenuSelected) {
+					case 'Logout':
+						this.SiteReset();
+					break;
+					default:
+						this.dialogOpen(this.VirtMenuSelected);
+				}
+
+				this.async(function(){
+					this.VirtMenuSelected = null;
+				}, 25)
+			}
+		},
+
+		dialogSwitch: function(DialogID) {
+		
+			switch(DialogID) {
+				case 'SiteUserPasswordSet':
+					this.SiteUser = {
+						SiteUserID: this.Site.SiteUser.SiteUserID,
+						SiteUserPassword: null,
+					};
+				break;
+				case 'SiteUserInfo':
+					this.SiteUser = {
+						SiteUserID: this.Site.SiteUser.SiteUserID,
+						Callsign: this.Site.SiteUser.Callsign,
+						CallsignName: this.Site.SiteUser.CallsignName,
+						CallsignRadio: this.Site.SiteUser.CallsignRadio,
+						CallsignAntenna: this.Site.SiteUser.CallsignAntenna,
+						SiteUserPassword: this.Site.SiteUser.SiteUserPassword,
+					}
+				break;
+				case 'SiteUserLogin':
+					this.SiteUser = {
+						Callsign: null,
+						EmailAddress: null,
+						SiteUserPassword: null,
+					}
+				break;
+			}
+
+			return DialogID;
+		},
+		
+
+
+		_jaxson: function(info) {
+		
+			switch(info.request) {
+				case 'SiteUserLogin':
+					if(info.Success == 1) {
+						this.set('Site.isAuthed', true);
+						this.set('Site.SiteUser', info.SiteUser);
+						if(this.SiteUserNewAccountPasswordSet) {
+							this.dialogOpen('SiteUserPasswordSet');
+							this.SiteUserNewAccount = false;
+						} else {
+							this.dialogClose();
+						}
+					}
+				break;
+				case 'SiteUserInfoUpdate':
+					this.dialogClose();
+				break;
+				case 'SiteUserPasswordSet':
+					this.dialogClose();
+				break;
+				case 'SitePing':
+					console.log("PING!");
+				break;
+			}
+		},
+		
+
+	});
+</script>

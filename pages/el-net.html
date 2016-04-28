@@ -1,0 +1,259 @@
+<link rel="import" href="/bower_components/logical-styles/logical-style-control-panel.html">
+<dom-module id="el-net">
+	<style include="logical-styles"></style>
+	<style include="el-style"></style>
+	<style>
+		paper-fab {
+			position: absolute;
+			bottom: 25px;
+			right: 25px;
+		}
+		iron-list div {
+			padding: 5px;
+		}
+
+		iron-list paper-material {
+			padding: 15px;
+		}
+
+	</style>
+	<template>
+	<!-- List -->
+		<iron-list id="CheckinList" items="[[Checkins]]" on-dblclick="CheckinOnDoubleClick">
+			<template>
+				<div data-checkinid$="[[item.CheckinID]]">
+					<paper-material>
+						<span>[[item.Callsign]]</span>
+						<span>[[item.CallsignName]]</span>
+						<span>[[item.County]]</span>
+						<span>[[item.OfficialTitles]]</span>
+					</paper-material>
+				</div>
+			</template>
+		</iron-list>
+	<!-- Paper FAB -->
+		<paper-fab icon="add" on-tap="dialog" data-dialog="CheckinAdd" hidden="[[!SiteIsAuthed]]"></paper-fab>
+	<!-- Dialogs -->
+		<logical-dialog id="Checkin" heading="Checkin" on-ld-enter="CheckinAddUpdate">
+			<div class="flex-box around align">
+				<logical-autocomplete label="Callsign" id="CallsignInput" list="Callsigns" upper-case input-value="{{Checkin.Callsign}}" value="{{Checkin.CallsignID}}" autofocus></logical-autocomplete>
+				<paper-icon-button icon="info-outline" on-tap="FCCCallsignInfo"></paper-icon-button>
+			</div>
+			<paper-input label="Name" value="{{Checkin.CallsignName}}"></paper-input>
+			<logical-autocomplete label="City, County, State" list="CitiesAndCounties" value="{{Checkin.ZipCodeID}}"></logical-autocomplete>
+			<div>
+				<paper-dropdown-menu label="Official Titles" no-animations>
+					<paper-listbox class="dropdown-content" multi selected-values="{{Checkin.OfficialIDs}}" attr-for-selected="OfficialID">
+						<template is="dom-repeat" items="[[Officials]]">
+							<paper-item OfficialID$="[[item.OfficialID]]">[[item.OfficialTitle]]</paper-item>
+						</template>
+					</paper-listbox>
+				</paper-dropdown-menu>
+			</div>
+			<div class="flex-box around margin">
+				<paper-button on-tap="CheckinAddUpdate" hidden="[[!_is(CheckinType, 'add')]]" raised>Checkin</paper-button>
+				<paper-button on-tap="CheckinInvalidate" hidden="[[!_is(CheckinType, 'update')]]" raised>Remove</paper-button>
+				<paper-button on-tap="CheckinAddUpdate" hidden="[[!_is(CheckinType, 'update')]]" raised>Update</paper-button>
+			</div>
+		</logical-dialog>
+		<div id="ControlPanel">
+			<paper-material>
+				<h1>[[Net.NetTemplateName]]</h1>
+				<h2>[[Net.NetTemplateFrequency]] MHz</h2>
+				<h3>[[Net.NetDateDayName]] [[Net.NetTemplateTime]]</h3>
+			</paper-material>
+			<paper-material>
+				<h1>Quick Links</h1>
+				<ul>
+					<li><a href="/home" on-click="PageLink">Home</a></li>
+					<li><a href="/net/list" on-click="PageLink">Active Nets</a></li>
+					<li><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
+					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
+				</ul>
+			</paper-material>
+		</div>
+	</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-net',
+		properties: {
+
+		},
+
+		behaviors: [
+			Polymer.LogicalPageBehaviors,
+		],
+
+
+
+		listeners: {
+			'sse-CheckinAdded': 'onSSECheckinAdded',
+			'ld-site-changed': 'SiteOnChange',
+		},
+
+
+		observers: [
+			'CheckinCallsignOnChange(Checkin.CallsignID)',
+		],
+
+
+		created: function() {
+		
+			this.info = {
+				title: 'A Net',
+				urlinfo: 1,
+			};
+			this.CheckinTemplate = {
+				CallsignID: null,
+				Callsign: null,
+				CallsignName: null,
+				ZipCodeID: null,
+				OfficialIDs: [],
+			};
+
+		},
+
+
+		attached: function() {
+
+			this.SiteOnChange();
+			if(LogicalApp.PageLocation.length < 2) {
+				this.remove();
+				LogicalApp.PageSet(['net', 'list'], true);
+			} else {
+				this.jaxson('multi',[
+					{request: 'Nets/NetInfo', NetURL: LogicalApp.PageLocation[1]},
+					{request: 'Nets/OfficialsList'},
+				]);
+			}
+		},
+		
+
+		CheckinAddUpdate: function() {
+		
+			console.log("this.Checkin", this.Checkin);
+
+			this.onSSECheckinAddedSkip = true;
+			this.Checkin.NetID = this.Net.NetID;
+			this.Checkin.request = this.CheckinType == 'update' ? 'Nets/CheckinUpdate' : 'Nets/CheckinAdd';
+			this.jaxson('multi', [ this.Checkin, { request: 'Nets/CheckinsListForNet', NetID: this.Net.NetID }])
+		},
+		
+
+		CheckinCallsignOnChange: function() {
+		
+			this.jaxson('Callsigns/CallsignInfo', { CallsignID: this.Checkin.CallsignID });
+			console.log("getting info", this.Checkin.CallsignID);
+		},
+		
+
+		CheckinOnDoubleClick: function(event) {
+
+			console.log("this.SiteIsAuthed", this.SiteIsAuthed);
+			if(!this.SiteIsAuthed) return;
+			console.log("this.Net", this.Net);
+			var CheckinModel = this.$.CheckinList.modelForElement(event.target);
+			this.jaxson('Nets/CheckinInfo', { CheckinID: CheckinModel.item.CheckinID});
+		},
+		
+
+		CheckinInvalidate: function() {
+		
+			this.Checkin.CheckinIsValid = false;
+			this.CheckinAddUpdate();
+		},
+		
+
+
+
+		FCCCallsignInfo: function() {
+		
+			this.jaxson('Callsigns/FCCCallsignInfo', { Callsign: this.Checkin.Callsign });
+		},
+
+
+		SiteOnChange: function() {
+		
+			this.SiteIsAuthed = LogicalApp.Site.isAuthed;
+		},
+		
+
+		onSSECheckinAdded: function(event) {
+		
+			if(!event.detail || !this.Net) return;
+			if(this.onSSECheckinAddedSkip) {
+				this.onSSECheckinAddedSkip = false;
+				return;
+			}
+			if(event.detail == this.Net.NetID) {
+				this.jaxson('Nets/CheckinsListForNet', { NetID: this.Net.NetID });
+			}
+		},
+		
+
+
+		dialogSwitch: function(dialogID) {
+		
+			this.Hidden1 = true;
+
+			switch(dialogID) {
+				case 'CheckinAdd':
+					this.CheckinType = 'add';
+					this.Checkin = this._copy(this.CheckinTemplate);
+					dialogID = 'Checkin';
+				break;
+				case 'CheckinUpdate':
+					this.CheckinType = 'update';
+					dialogID = 'Checkin';
+				break;
+			}
+
+			return dialogID;
+		},
+		
+
+		
+		_jaxson: function(info) {
+		
+			switch(info.request) {
+				case 'CallsignInfo':
+					this.set('Checkin.CallsignName', info.Callsign.CallsignName || null);
+					this.set('Checkin.ZipCodeID', info.Callsign.ZipCodeID || null);
+					this.set('Checkin.OfficialIDs', info.Callsign.OfficialIDs || []);
+					this._focus(this.$.CallsignInput.$.input);
+				break;
+				case 'CheckinAdd':
+				case 'CheckinUpdate':
+					this.CheckinType = 'add';
+					this.Checkin = this._copy(this.CheckinTemplate);
+				break;
+				case 'CheckinInfo':
+					this.Checkin = info.Checkin;
+					this.dialogOpen('CheckinUpdate');
+				break;
+				case 'CheckinsListForNet':
+					this.Checkins = info.Checkins;
+				break;
+				case 'FCCCallsignInfo':
+					this.set('Checkin.CallsignName', info.FCCCallsign.FCCCallsignFirstNameFormatted);
+					this.set('Checkin.ZipCodeID', info.FCCCallsign.ZipCodeID);
+				break;
+				case 'NetInfo':
+					if(!info.Error) {
+						this.Net = info.Net;
+						this.Checkins = info.Checkins;
+					} else {
+						LogicalApp.Toast('Net not found');
+						LogicalApp.PageSet(['net','list']);
+					}
+				break;
+				case 'OfficialsList':
+					this.Officials = info.Officials;
+				break;
+			}
+		},
+		
+
+	});
+</script>

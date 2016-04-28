@@ -1,0 +1,240 @@
+<dom-module id="el-net-list">
+	<style include="logical-styles"></style>
+	<style include="el-style"></style>
+	<style>
+		iron-list div {
+			padding: 5px;
+		}
+		iron-list paper-material {
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			padding: 15px;
+		}
+	</style>
+	<template>
+	<!-- List -->
+		<iron-list items="[[Nets]]" selection-enabled selected-item="{{NetSelected}}">
+			<template>
+				<div>
+					<paper-material selected$="[[selected]]">
+						<span>[[item.NetTemplateName]]</span>
+						<span>[[item.NetDateFormatted]]</span>
+						<span>
+							<paper-button on-tap="NetOpen" hidden="[[!selected]]">Open</paper-button>
+						</span>
+					</paper-material>
+				</div>
+			</template>
+		</iron-list>
+	<!-- Dialogs -->
+		<!-- DNet -->
+		<logical-dialog id="Net" heading="Start a Net">
+			<div class="flex-box column align" hidden="[[DialogLoading]]">
+				<paper-dropdown-menu label="Net" no-animations>
+					<paper-listbox class="dropdown-content" selected="{{NetNew.NetTemplateID}}" attr-for-selected="NetTemplateID">
+						<template is="dom-repeat" items="[[NetTemplates]]">
+							<paper-item NetTemplateID$=[[item.NetTemplateID]]>[[item.NetTemplateName]] - [[item.NetTemplateFrequency]]</paper-item>
+						</template>
+						<paper-item NetTemplateID="NEW">Add New</paper-item>
+					</paper-listbox>
+				</paper-dropdown-menu>
+				<div class="flex-box around" hidden="[[!NetNew.NetTemplateID]]">
+					<paper-input label="Date" value="{{NetNew.NetDate}}" type="date"></paper-input>
+					<paper-input label="Time" value="{{NetNew.NetTime}}" type="time"></paper-input>
+				</div>
+				<div>
+					<paper-button on-tap="NetStart">Start</paper-button>
+				</div>
+			</div>
+			<div hidden="[[!DialogLoading]]" class="filler">
+				<paper-spinner active="[[DialogLoading]]" class=""></paper-spinner>
+			</div>
+		</logical-dialog>
+		<!-- DNetTemplate -->
+		<logical-dialog id="NetTemplate" heading="Net Template">
+			<div class="flex-box column align" hidden="[[DialogLoading]]">
+				<paper-input label="Net Name" value="{{NetTemplateNew.NetTemplateName}}" autofocus></paper-input>
+				<paper-input label="Net Frequency (MHz)" value="{{NetTemplateNew.NetTemplateFrequency}}"></paper-input>
+				<paper-input label="Time" value="{{NetTemplateNew.NetTemplateTime}}" type="time"></paper-input>
+				<paper-dropdown-menu label="Net Type" no-animations>
+					<paper-listbox class="dropdown-content" selected="{{NetTemplateNew.NetTypeID}}" attr-for-selected="NetTypeID">
+						<template is="dom-repeat" items="[[NetTypes]]">
+							<paper-item NetTypeID$="[[item.NetTypeID]]">[[item.NetType]]</paper-item>
+						</template>
+					</paper-listbox>
+				</paper-dropdown-menu>
+				<paper-button on-tap="NetTemplateAdd" raised>Add</paper-button>
+			</div>
+			<div hidden="[[!DialogLoading]]" class="filler">
+				<paper-spinner active="[[DialogLoading]]" class=""></paper-spinner>
+			</div>
+		</logical-dialog>
+
+
+	<!-- Control Panel -->
+		<div id="ControlPanel">
+			<paper-material>
+				<h1>Quick Links</h1>
+				<ul>
+					<li><a href="/home" on-click="PageLink">Home</a></li>
+					<li><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
+					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
+				</ul>
+			</paper-material>
+			<paper-material hidden="[[!SiteIsAuthed]]" class="flex-box around">
+				<paper-button on-tap="dialog" data-dialog="Net" raised>Start Net</paper-button>
+			</paper-material>
+		</div>
+	</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'el-net-list',
+
+
+		properties: {
+
+		},
+
+
+		behaviors: [
+			Polymer.LogicalPageBehaviors,
+		],
+
+		listeners: {
+			'ld-site-changed': 'SiteOnChange',
+		},
+
+
+		observers: [
+			'NetNewOnChanged(NetNew.*)',
+		],
+
+		created: function() {
+		
+			this.info = {
+				title: 'Nets',
+			}
+
+		},
+		
+
+		ready: function() {
+		
+			this.DialogLoading = false;
+
+			this.jaxson('Nets/NetsList');
+
+			// LogicalApp.addEventListener('Site-changed', this.SiteOnChange.bind(this));
+			// this.SiteOnChange();
+
+		},
+			
+
+		NetNewOnChanged: function(info) {
+		
+			if(this.NetNew) {
+				switch(info.path) {
+					case 'NetNew.NetTemplateID':
+						if(this.NetNew.NetTemplateID) {
+							if(this.NetNew.NetTemplateID == 'NEW') {
+								this.set('NetNew.NetTemplateID', null);
+								this.dialogOpen('NetTemplate');
+							} else {
+								var NetTemplateID = this.NetNew.NetTemplateID;
+								var NetTemplate = this.NetTemplates.filter(function(NetTemplate){ return NetTemplate.NetTemplateID == NetTemplateID})[0];
+								this.set('NetNew.NetTime', NetTemplate.NetTemplateTime);
+								this.set('NetNew.NetDate', this._today());
+							}
+						}
+					break;
+				}
+			}
+		},
+		
+
+		NetStart: function() {
+		
+			this.DialogLoading = true;
+			this.jaxson('Nets/NetAdd', this.NetNew);
+		},
+		
+		NetOpen: function(event) {
+		
+			event.stopPropagation();
+			console.log("this.NetSelected", this.NetSelected);
+			LogicalApp.PageSet(['net', this.NetSelected.NetURL]);
+		},
+		
+
+
+		NetTemplateAdd: function() {
+		
+			this.DialogLoading = true;
+			this.jaxson('Nets/NetTemplateAdd', this.NetTemplateNew);
+		},
+		
+		SiteOnChange: function() {
+		
+			this.SiteIsAuthed = LogicalApp.Site.isAuthed;
+		},
+	
+
+
+		dialogSwitch: function(dialogID) {
+		
+			switch(dialogID) {
+				case 'NetTemplate':
+					this.NetTemplateNew = {
+						NetTemplateName: null,
+						NetTemplateFrequency: null,
+						NetTemplateTime: null,
+						NetTypeID: null,
+					};
+				break;
+				case 'Net':
+					if(!this.NetNew) {
+						this.NetNew = {
+							NetTemplateID: null,
+						}
+					}
+				break;
+			}
+
+			return dialogID;
+		},
+		
+
+		_jaxson: function(info) {
+		
+			switch(info.request) {
+				case 'NetAdd':
+					this.DialogLoading = false;
+					if(!info.Error) {
+						LogicalApp.PageSet(['net', info.NetURL]);
+					}
+				break;
+				case 'NetTemplateAdd':
+					this.DialogLoading = false;
+					if(!info.Error) {
+						var NetTemplate = info.NetTemplates.filter(function(NetTemplate){ return NetTemplate.NetTemplateID == info.NetTemplateID})[0];
+						this.NetNew = {
+							NetTemplateID: NetTemplate.NetTemplateID,
+							NetTime: NetTemplate.NetTemplateTime,
+							NetDate: this._today(),
+						}
+						this.dialogOpen('Net');
+					}
+				case 'NetsList':
+					this.NetTemplates = info.NetTemplates;
+					this.NetTypes = info.NetTypes;
+					this.Nets = info.Nets;
+				break;
+			}
+
+		},
+			
+
+	});
+</script>
