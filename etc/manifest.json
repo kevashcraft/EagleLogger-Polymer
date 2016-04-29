@@ -1,0 +1,26 @@
+{
+  "lang": "en",
+  "dir": "ltr",
+  "name": "The EagleLogger",
+  "description": "A Net-logging Application",
+  "short_name": "EagleLogger",
+  "icons": [{
+    "src": "/rsc/favicons/eaglelogger-64.png",
+    "sizes": "64x64"
+  },{
+    "src": "/rsc/favicons/eaglelogger-128.png",
+    "sizes": "128x128"
+  }, {
+    "src": "/rsc/favicons/eaglelogger-256.png",
+    "sizes": "256x256"
+  },{
+    "src": "/rsc/favicons/eaglelogger.svg",
+    "sizes": "257x257"
+  }],
+  "scope": "/",
+  "start_url": "/home",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "theme_color": "#002868",
+  "background_color": "#002868"
+}

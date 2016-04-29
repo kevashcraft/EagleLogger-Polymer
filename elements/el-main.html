@@ -1,5 +1,6 @@
 <dom-module id="el-main">
 	<style include="logical-style-flex"></style>
+	<style include="logical-style-misc-classes"></style>
 	<style include="el-style"></style>
 	<style>
 
@@ -24,16 +25,17 @@
 			}
 	</style>
 	<template>
-		<paper-drawer-panel drawer-width="325px">
+		<paper-drawer-panel id="DrawerPanel" drawer-width="325px" responsive-width="800px">
 			<paper-header-panel drawer>
 				<paper-toolbar>
-					<a href="/" class="home-link">EagleLogger</a>
+					<a href="/" class="home-link" title="The EagleLogger">EagleLogger</a>
 				</paper-toolbar>
 				<div id="ControlPanelContainer"></div>
 			</paper-header-panel>
 			<paper-header-panel main>
 				<paper-toolbar>
 					<paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+					<paper-icon-button icon="arrow-back" on-tap="PageSetEvent" data-page$="[[PagePreviousPage]]" hidden="[[!PagePreviousPage]]" class="margin-right"></paper-icon-button>
 					<span class="page-title">[[PageTitle]]</span>
 					<span class="flex"></span>
 					<span hidden="[[!Site.isAuthed]]">

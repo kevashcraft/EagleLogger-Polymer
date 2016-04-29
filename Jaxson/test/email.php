@@ -33,17 +33,17 @@ $mail->Username = "server@kevashcraft.com";
 //Password to use for SMTP authentication
 $mail->Password = "R5QkEHEz6Wz46Adp1FJ4";
 //Set who the message is to be sent from
-$mail->setFrom('test@kevashcraft.com', 'Name ONAME');
+$mail->setFrom('server@kevashcraft.com', "Kevin's Server");
 //Set an alternative reply-to address
-$mail->addReplyTo('test@kevashcraft.com', 'Name ONAME');
+$mail->addReplyTo('server@kevashcraft.com', "Kevin's Server");
 //Set who the message is to be sent to
-$mail->addAddress('kevin@logicdudes.com', 'Kevin Ashcraft');
+$mail->addAddress('km4fpa@arrl.net', 'Kevin Ashcraft');
 //Set the subject line
-$mail->Subject = 'PHPMailer GMail SMTP test';
+$mail->Subject = 'Rock on!';
 //Read an HTML message body from an external file, convert referenced images to embedded,
 //convert HTML into a basic plain-text alternative body
 // $mail->msgHTML(file_get_contents('contents.html'), dirname(__FILE__));
-$mail->Body = "This is a file";
+$mail->Body = "The message was received well and I think we can use this for registration purposes :D";
 //Replace the plain text body with one created manually
 // $mail->AltBody = 'This is a plain-text message body';
 //Attach an image file

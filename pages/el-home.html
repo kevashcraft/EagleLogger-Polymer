@@ -3,18 +3,16 @@
 	<style include="el-style"></style>
 	<template>
 		<div class="page-wrapper">
-			<h1>Welcome to EagleLogger</h1>
-			<section>
-				<h2>About</h2>
+			<paper-material>
+				<h1>Welcome to EagleLogger</h1>
 				<p>EagleLogger is a net-logging application built to work on all devices.</p>
-				<p>This is the second addition of the program and just became stable April 26th.</p>
-			</section>
-			<section>
+			</paper-material>
+			<paper-material>
 				<h2>How To</h2>
 				<p>Anyone can take a look at the <a href="/net/list">Active Nets</a> and follow along.</p>
 				<p>To start a net or modify your info, you must <a on-tap="SiteDialog" data-dialog="SiteUserNewAccount">Create an Account</a>. Please note, you must be an ARRL member with email forwarding enabled.</p>
-			</section>
-			<section>
+			</paper-material>
+			<paper-material>
 				<h2>Development Info</h2>
 				<p>If you have <b>any problems</b>, please <a href="mailto:km4fpa@kevashcraft.com?subject=EagleLogger Issue">email me</a>.</p>
 				<p>Next on the to-do list is to add a chat box and choose some better colors.</p>
@@ -26,15 +24,15 @@
 						<li>Clean internal database so information is layed out nicely</li>
 					</ul>
 				</p>
-			</section>
+			</paper-material>
 		</div>
 		<div id="ControlPanel">
 			<paper-material>
 				<h1>Quick Links</h1>
 				<ul>
 					<li><a href="/net/list" on-click="PageLink">Active Nets</a></li>
-					<li><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
-					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
+					<li><img src="/rsc/logos/ni4ce.png"><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
+					<li><img src="/rsc/logos/arrl.png"><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
 				</ul>
 			</paper-material>
 		</div>
@@ -67,8 +65,9 @@
 		
 			console.log("ready!");
 		},
-		
-		
+				
+
+
 		SiteDialog: function(event) {
 		
 			var dialog = this._data('dialog', event)

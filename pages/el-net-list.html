@@ -13,20 +13,22 @@
 		}
 	</style>
 	<template>
-	<!-- List -->
-		<iron-list items="[[Nets]]" selection-enabled selected-item="{{NetSelected}}">
-			<template>
-				<div>
-					<paper-material selected$="[[selected]]">
-						<span>[[item.NetTemplateName]]</span>
-						<span>[[item.NetDateFormatted]]</span>
-						<span>
-							<paper-button on-tap="NetOpen" hidden="[[!selected]]">Open</paper-button>
-						</span>
-					</paper-material>
-				</div>
-			</template>
-		</iron-list>
+		<div class="page-wrapper">
+		<!-- List -->
+			<iron-list items="[[Nets]]" selection-enabled selected-item="{{NetSelected}}">
+				<template>
+					<div>
+						<paper-material selected$="[[selected]]">
+							<span>[[item.NetTemplateName]]</span>
+							<span>[[item.NetDateFormatted]]</span>
+							<span>
+								<paper-button on-tap="NetOpen" hidden="[[!selected]]">Open</paper-button>
+							</span>
+						</paper-material>
+					</div>
+				</template>
+			</iron-list>
+		</div>
 	<!-- Dialogs -->
 		<!-- DNet -->
 		<logical-dialog id="Net" heading="Start a Net">
@@ -115,20 +117,19 @@
 		
 			this.info = {
 				title: 'Nets',
-			}
+				PagePreviousPage: 'home',
+			};
 
 		},
 		
 
 		ready: function() {
 		
+
+
 			this.DialogLoading = false;
-
+			this.SiteIsAuthed = false;
 			this.jaxson('Nets/NetsList');
-
-			// LogicalApp.addEventListener('Site-changed', this.SiteOnChange.bind(this));
-			// this.SiteOnChange();
-
 		},
 			
 
@@ -163,7 +164,6 @@
 		NetOpen: function(event) {
 		
 			event.stopPropagation();
-			console.log("this.NetSelected", this.NetSelected);
 			LogicalApp.PageSet(['net', this.NetSelected.NetURL]);
 		},
 		
@@ -177,7 +177,7 @@
 		
 		SiteOnChange: function() {
 		
-			this.SiteIsAuthed = LogicalApp.Site.isAuthed;
+			this.SiteIsAuthed = LogicalApp.Site.isAuthed || false;
 		},
 	
 

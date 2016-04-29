@@ -18,21 +18,23 @@
 
 	</style>
 	<template>
-	<!-- List -->
-		<iron-list id="CheckinList" items="[[Checkins]]" on-dblclick="CheckinOnDoubleClick">
-			<template>
-				<div data-checkinid$="[[item.CheckinID]]">
-					<paper-material>
-						<span>[[item.Callsign]]</span>
-						<span>[[item.CallsignName]]</span>
-						<span>[[item.County]]</span>
-						<span>[[item.OfficialTitles]]</span>
-					</paper-material>
-				</div>
-			</template>
-		</iron-list>
-	<!-- Paper FAB -->
-		<paper-fab icon="add" on-tap="dialog" data-dialog="CheckinAdd" hidden="[[!SiteIsAuthed]]"></paper-fab>
+	<div class="page-wrapper">
+		<!-- List -->
+			<iron-list id="CheckinList" items="[[Checkins]]" on-dblclick="CheckinOnDoubleClick">
+				<template>
+					<div data-checkinid$="[[item.CheckinID]]">
+						<paper-material>
+							<span>[[item.Callsign]]</span>
+							<span>[[item.CallsignName]]</span>
+							<span>[[item.County]]</span>
+							<span>[[item.OfficialTitles]]</span>
+						</paper-material>
+					</div>
+				</template>
+			</iron-list>
+		<!-- Paper FAB -->
+			<paper-fab icon="add" on-tap="dialog" data-dialog="CheckinAdd" hidden="[[!SiteIsAuthed]]"></paper-fab>
+	</div>
 	<!-- Dialogs -->
 		<logical-dialog id="Checkin" heading="Checkin" on-ld-enter="CheckinAddUpdate">
 			<div class="flex-box around align">
@@ -62,15 +64,7 @@
 				<h2>[[Net.NetTemplateFrequency]] MHz</h2>
 				<h3>[[Net.NetDateDayName]] [[Net.NetTemplateTime]]</h3>
 			</paper-material>
-			<paper-material>
-				<h1>Quick Links</h1>
-				<ul>
-					<li><a href="/home" on-click="PageLink">Home</a></li>
-					<li><a href="/net/list" on-click="PageLink">Active Nets</a></li>
-					<li><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
-					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
-				</ul>
-			</paper-material>
+			<el-chat authed="[[SiteIsAuthed]]" net-id="[[Net.NetID]]" id="Chat"></el-chat>
 		</div>
 	</template>
 </dom-module>
@@ -89,6 +83,7 @@
 
 		listeners: {
 			'sse-CheckinAdded': 'onSSECheckinAdded',
+			'sse-ChatMessage': 'onSSEChatMessage',
 			'ld-site-changed': 'SiteOnChange',
 		},
 
@@ -103,6 +98,7 @@
 			this.info = {
 				title: 'A Net',
 				urlinfo: 1,
+				PagePreviousPage: 'net/list',
 			};
 			this.CheckinTemplate = {
 				CallsignID: null,
@@ -192,6 +188,13 @@
 		},
 		
 
+		onSSEChatMessage: function(event) {
+		
+			if(event.detail == this.Net.NetID)
+				this.$.Chat.ChatMessagesGet();
+		},
+		
+
 
 		dialogSwitch: function(dialogID) {
 		
@@ -243,6 +246,7 @@
 					if(!info.Error) {
 						this.Net = info.Net;
 						this.Checkins = info.Checkins;
+						this.$.Chat.ChatMessagesGet();
 					} else {
 						LogicalApp.Toast('Net not found');
 						LogicalApp.PageSet(['net','list']);
