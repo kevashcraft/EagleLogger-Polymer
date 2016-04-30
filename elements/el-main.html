@@ -148,6 +148,15 @@
 
 		},		
 
+		ready: function() {
+		
+			document.querySelector('.loading-wrapper').style.display = 'none';
+			// window.addEventListener('beforeunload', function(){
+			// 	document.querySelector('.loading-wrapper').style.display = 'block';
+			// });
+		},
+		
+
 		attached: function() {
 		
 			this.SiteUser = {};
@@ -203,6 +212,7 @@
 		onQueryVariablesSet: function() {
 		
 			if(this.QueryVariables.NewAccount) {
+				this.QueryVariables.NewAccount = false;
 				console.log("this.QueryVariables", this.QueryVariables);
 				this.SiteUserNewAccountPasswordSet = true;
 				this.jaxson('Site/SiteUserLogin', { Callsign: this.QueryVariables.Callsign, SiteUserPassword: this.QueryVariables.Token});
@@ -265,11 +275,13 @@
 			switch(info.request) {
 				case 'SiteUserLogin':
 					if(info.Success == 1) {
-						this.set('Site.isAuthed', true);
-						this.set('Site.SiteUser', info.SiteUser);
+						var Site = this._copy(LogicalApp.Site);
+						Site.isAuthed = true;
+						Site.SiteUser = info.SiteUser;
+						LogicalApp.Site = Site;
 						if(this.SiteUserNewAccountPasswordSet) {
 							this.dialogOpen('SiteUserPasswordSet');
-							this.SiteUserNewAccount = false;
+							this.SiteUserNewAccountPasswordSet = false;
 						} else {
 							this.dialogClose();
 						}

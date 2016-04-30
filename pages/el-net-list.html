@@ -84,7 +84,7 @@
 					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
 				</ul>
 			</paper-material>
-			<paper-material hidden="[[!SiteIsAuthed]]" class="flex-box around">
+			<paper-material hidden="[[!Site.isAuthed]]" class="flex-box around">
 				<paper-button on-tap="dialog" data-dialog="Net" raised>Start Net</paper-button>
 			</paper-material>
 		</div>
@@ -104,14 +104,17 @@
 			Polymer.LogicalPageBehaviors,
 		],
 
-		listeners: {
-			'ld-site-changed': 'SiteOnChange',
-		},
-
 
 		observers: [
 			'NetNewOnChanged(NetNew.*)',
+			'SiteChanged(Site.*)',
 		],
+
+		SiteChanged: function(info) {
+		
+			console.log("info", info);
+		},
+		
 
 		created: function() {
 		
@@ -175,11 +178,6 @@
 			this.jaxson('Nets/NetTemplateAdd', this.NetTemplateNew);
 		},
 		
-		SiteOnChange: function() {
-		
-			this.SiteIsAuthed = LogicalApp.Site.isAuthed || false;
-		},
-	
 
 
 		dialogSwitch: function(dialogID) {

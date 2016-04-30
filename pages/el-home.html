@@ -9,7 +9,7 @@
 			</paper-material>
 			<paper-material>
 				<h2>How To</h2>
-				<p>Anyone can take a look at the <a href="/net/list">Active Nets</a> and follow along.</p>
+				<p>Anyone can take a look at the <a href="/net/list" on-click="PageLink">Active Nets</a> and follow along.</p>
 				<p>To start a net or modify your info, you must <a on-tap="SiteDialog" data-dialog="SiteUserNewAccount">Create an Account</a>. Please note, you must be an ARRL member with email forwarding enabled.</p>
 			</paper-material>
 			<paper-material>
@@ -61,11 +61,6 @@
 			};
 		},
 
-		ready: function() {
-		
-			console.log("ready!");
-		},
-				
 
 
 		SiteDialog: function(event) {

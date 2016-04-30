@@ -58,6 +58,10 @@
 				<paper-button on-tap="CheckinAddUpdate" hidden="[[!_is(CheckinType, 'update')]]" raised>Update</paper-button>
 			</div>
 		</logical-dialog>
+		<logical-dialog id="ChatMessageDialog" heading="New Message">
+			<paper-input label="Message" value="{{ChatMessage}}" autofocus></paper-input>
+			<paper-button on-tap="ChatMessageSend">Send</paper-button>
+		</logical-dialog>
 		<div id="ControlPanel">
 			<paper-material>
 				<h1>[[Net.NetTemplateName]]</h1>
@@ -126,10 +130,15 @@
 		},
 		
 
+		ChatMessageSend: function(event) {
+		
+			this.dialogClose();
+			this.$.Chat.ChatMessageSend(event, this.ChatMessage);
+		},
+		
+
 		CheckinAddUpdate: function() {
 		
-			console.log("this.Checkin", this.Checkin);
-
 			this.onSSECheckinAddedSkip = true;
 			this.Checkin.NetID = this.Net.NetID;
 			this.Checkin.request = this.CheckinType == 'update' ? 'Nets/CheckinUpdate' : 'Nets/CheckinAdd';
@@ -140,15 +149,12 @@
 		CheckinCallsignOnChange: function() {
 		
 			this.jaxson('Callsigns/CallsignInfo', { CallsignID: this.Checkin.CallsignID });
-			console.log("getting info", this.Checkin.CallsignID);
 		},
 		
 
 		CheckinOnDoubleClick: function(event) {
 
-			console.log("this.SiteIsAuthed", this.SiteIsAuthed);
 			if(!this.SiteIsAuthed) return;
-			console.log("this.Net", this.Net);
 			var CheckinModel = this.$.CheckinList.modelForElement(event.target);
 			this.jaxson('Nets/CheckinInfo', { CheckinID: CheckinModel.item.CheckinID});
 		},
@@ -201,6 +207,10 @@
 			this.Hidden1 = true;
 
 			switch(dialogID) {
+				case 'ChatMessageDialog':
+					LogicalApp.$.DrawerPanel.closeDrawer();
+					this.ChatMessage = null;
+				break;
 				case 'CheckinAdd':
 					this.CheckinType = 'add';
 					this.Checkin = this._copy(this.CheckinTemplate);
@@ -246,6 +256,11 @@
 					if(!info.Error) {
 						this.Net = info.Net;
 						this.Checkins = info.Checkins;
+						var HistoryState = window.history.state;
+						HistoryState.PageTitle = info.Net.NetTemplateName;
+						window.history.replaceState(HistoryState, HistoryState.PageTitle, HistoryState.PageURL);
+						LogicalApp.set('PageTitle', HistoryState.PageTitle);
+						document.title = HistoryState.PageTitle + " | " + LogicalApp.SiteTitle;
 						this.$.Chat.ChatMessagesGet();
 					} else {
 						LogicalApp.Toast('Net not found');

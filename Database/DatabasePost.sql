@@ -69,5 +69,5 @@ DELIMITER ;
 
 
 
-CALL SiteUserNewAccount('KM4FPA', '$2y$10$FyeRjH5bc7MqJIK8zFv23eJ4.dqdAsPdTFtGuQ.i3fCngilTQBMvG');
+-- CALL SiteUserNewAccount('KM4FPA', '$2y$10$FyeRjH5bc7MqJIK8zFv23eJ4.dqdAsPdTFtGuQ.i3fCngilTQBMvG');
 -- call CitiesAndCountiesListAC('auburndale', NULL);

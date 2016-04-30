@@ -34,7 +34,7 @@
 				</template>
 				<div></div>
 			</div>
-			<input is="iron-input" bind-value="{{ChatMessage}}" disabled="[[!authed]]" placeholder="your message">
+			<input is="iron-input" bind-value="{{ChatMessage}}" disabled="[[!authed]]" placeholder="your message" on-tap="ChatMessageTap">
 		</paper-material>
 	</template>
 </dom-module>
@@ -74,10 +74,10 @@
 		
 
 
-		ChatMessageSend: function(event) {
+		ChatMessageSend: function(event, message) {
 		
 			this.ChatMessagesGetSkip = true;
-			if(event.keyCode == 13) {
+			if(event.keyCode == 13 || message) {
 
 				// LogicalApp.jaxson('Chat/ChatMessageNew', {
 				// 	NetID: this.netId,
@@ -87,7 +87,7 @@
 					{
 						request: 'Chat/ChatMessageNew',
 						NetID: this.netId,
-						ChatMessage: this.ChatMessage
+						ChatMessage: message || this.ChatMessage
 					},
 					{
 						request: 'Chat/ChatMessagesForNet',
@@ -100,9 +100,17 @@
 		},		
 
 
+		ChatMessageTap: function(event) {
+		
+			if(LogicalApp.$.DrawerPanel.narrow && LogicalApp.$.DrawerPanel.selected == 'drawer' && LogicalApp.Site.isAuthed) {
+				LogicalApp.CurrentElement.dialogOpen('ChatMessageDialog');
+			}
+		},
+		
+
+
 		_jaxson: function(info) {
 		
-			console.log("info", info);
 			switch(info.request) {
 				case 'ChatMessagesForNet':
 					this.ChatMessages = info.ChatMessages;

@@ -48,7 +48,7 @@ class Site {
 		$Error = \Jaxson::$db->query("SELECT @Error")->fetchColumn();
 		if($Error == 'NONE') {
 			$Callsign = \Jaxson::$db->query("SELECT @Callsign")->fetchColumn();
-			\Tools\EagleMail::NewAccountEmail($EmailAddress, $Callsign, $Password);
+			\Tools\EagleMail::NewAccountEmail($Callsign, $Password);
 			\Jaxson::$response['toast'] = "Account Created! $Callsign Click the link in your email.";
 		} else {
 			\Jaxson::$response['toast'] = $Error;

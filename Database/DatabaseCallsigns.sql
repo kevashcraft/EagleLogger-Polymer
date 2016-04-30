@@ -208,7 +208,8 @@ BEGIN
 	SELECT
 			*
 		FROM FCCCallsignsList
-		WHERE FCCCallsign = _Callsign;
+		WHERE FCCCallsign = _Callsign
+		AND FCCCallsignDateExpired > NOW();
 END//
 DELIMITER ;
 

@@ -6,13 +6,30 @@
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="manifest" href="/etc/manifest.json">
-	<link rel="shortcut icon" sizes="16x16 48x48 128x128 256x256" href="http://d.eaglelogger.com/favicon.ico">
+	<link rel="shortcut icon" sizes="16x16 48x48 128x128 256x256" href="https://eaglelogger.com/favicon.ico">
 	<script src="/bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 	<link rel="import" href="/elements/el-imports.html">
 	<link href='https://fonts.googleapis.com/css?family=Oxygen|Yantramanav' rel='stylesheet' type='text/css'>
 	<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="/etc/style.css">
+	<script type="text/javascript" src="/etc/script.js"></script>
 </head>
 <body>
 	<el-main></el-main>
+	<div class="loading-wrapper">
+		<div class="loading-bars"></div>
+		<div id="loading-error">
+			<span>There was an error loading.</span>
+			<br>
+			<span>Supported Browsers: <a href="https://www.google.com/chrome/browser/
+" target="_blank">Chrome</a> & <a href="https://www.mozilla.org/en-US/firefox/new/" target="_blank">Firefox</a></span>
+			<br>
+			<span>Others in testing..</span>
+		</div>
+		<div id="loading-emailme">
+			<span>Problems: email <a href="mailto:km4fpa@eaglelogger.com" title="Email KM4FPA">km4fpa@eaglelogger.com</a></span>
+		</div>
+	</div>
 </body>
 </html>
