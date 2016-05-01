@@ -76,6 +76,8 @@ CREATE VIEW CallsignsView AS
 			Callsigns.CallsignTSU,
 			Callsigns.Callsign,
 			Callsigns.CallsignName,
+			Callsigns.CallsignRadio,
+			Callsigns.CallsignAntenna,
 			Callsigns.CallsignIsValid,
 			(
 				SELECT

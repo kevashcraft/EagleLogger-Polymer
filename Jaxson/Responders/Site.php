@@ -9,6 +9,15 @@ class Site {
 	}
 	
 
+	public static function SiteUserInfo() {
+
+		$stm = \Jaxson::$db->prepare("CALL SiteUserInfo ( :SiteUserID )");
+		$stm->execute([':SiteUserID' => \Jaxson::$data->SiteUserID]);
+		\Jaxson::$response['SiteUser'] = $stm->fetch();
+	}
+	
+
+
 	public static function SiteUserLogin() {
 
 		// get user info per username
@@ -21,10 +30,9 @@ class Site {
 
 				$stm = \Jaxson::$db->prepare("CALL SiteUserLogin ( :SiteUserID )");
 				$stm->execute([":SiteUserID" => $SiteUser['SiteUserID']]);
+				\Jaxson::$data->SiteUserID = $SiteUser['SiteUserID'];
+				self::SiteUserInfo();
 				\Jaxson::$response['Success'] = 1;
-				$stm = \Jaxson::$db->prepare("CALL SiteUserInfo ( :SiteUserID )");
-				$stm->execute([':SiteUserID' => $SiteUser['SiteUserID']]);
-				\Jaxson::$response['SiteUser'] = $stm->fetch();
 
 		} else {
 		

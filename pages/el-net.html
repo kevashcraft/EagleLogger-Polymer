@@ -14,26 +14,98 @@
 
 		iron-list paper-material {
 			padding: 15px;
+			display: flex;
+			justify-content: space-between;
+		}
+		iron-list paper-material div {
+			width: 100px;
+		}
+		iron-list paper-material div span {
+			display: block;
+			font-size: 18px;
+		}
+		iron-list paper-material div span:first-of-type {
+			font-size: 21px;
+		}
+		@media (max-width: 800px) {
+			iron-list paper-material div span {
+				font-size: 16px;
+			}
+			iron-list paper-material div span:first-of-type {
+				font-size: 18px;
+			}
+
 		}
 
+		.Hint {
+			position: absolute;
+			top: 25vh;
+			left: 0;
+			right: 0;
+			text-align: center;
+			font-size: 24px;
+		}
+		.Hint iron-icon {
+			height: 36px;
+			width: 36px;
+		}
+		.Hint span {
+			cursor: pointer;
+		}
+		.Hint span:hover {
+			color: #E0162B;
+		}
 	</style>
 	<template>
 	<div class="page-wrapper">
+		<div hidden="[[!NoCheckins]]" class="Hint">
+			<span on-tap="dialog" data-dialog="CheckinAdd" hidden="[[HideFab]]">
+				<iron-icon icon="add"></iron-icon>
+				<span>Add a Checkin</span>
+			</span>
+			<span on-tap="dialog" data-dialog="CheckinAdd" hidden="[[!HideFab]]">
+				<span>No Checkins Yet</span>
+			</span>
+		</div>
 		<!-- List -->
-			<iron-list id="CheckinList" items="[[Checkins]]" on-dblclick="CheckinOnDoubleClick">
+			<iron-list id="CheckinList" items="[[Checkins]]" on-dblclick="CheckinOnDoubleClick" hidden="[[NoCheckins]]">
 				<template>
 					<div data-checkinid$="[[item.CheckinID]]">
 						<paper-material>
-							<span>[[item.Callsign]]</span>
-							<span>[[item.CallsignName]]</span>
-							<span>[[item.County]]</span>
-							<span>[[item.OfficialTitles]]</span>
+							<div>
+								<span>[[item.Callsign]]</span>
+								<span>[[item.CallsignRadio]]</span>
+								<span>[[item.CallsignAntenna]]</span>
+							</div>
+							<div>
+								<span>[[item.CallsignName]]</span>
+								<template is="dom-repeat" items="[[item.OfficialTitles]]">
+									<span>[[item]]</span>
+								</template>
+							</div>
+							<div>
+								<span>[[item.County]]</span>
+							</div>
 						</paper-material>
 					</div>
 				</template>
 			</iron-list>
 		<!-- Paper FAB -->
-			<paper-fab icon="add" on-tap="dialog" data-dialog="CheckinAdd" hidden="[[!SiteIsAuthed]]"></paper-fab>
+			<paper-fab icon="add" on-tap="dialog" data-dialog="CheckinAdd" hidden="[[HideFab]]"></paper-fab>
+	</div>
+	<!-- Control Panel -->
+	<div id="ControlPanel">
+		<paper-material>
+			<h1>[[Net.NetTemplateName]]</h1>
+			<h2>[[Net.NetTemplateFrequency]] MHz</h2>
+			<h3>[[Net.NetDateFormatted]]</h3>
+			<h3>Checkins: [[Net.CheckinsCount]]</h3>
+		</paper-material>
+		<el-chat authed="[[SiteIsAuthed]]" net-id="[[Net.NetID]]" id="Chat"></el-chat>
+		<paper-material hidden="[[HideFab]]" class="flex-box around">
+			<paper-button on-tap="NetInfoUpdate" hidden="[[!_is(Net.NetIsActive, 1)]]" raised>End Net</paper-button>
+			<paper-button on-tap="NetInfoUpdate" hidden="[[!_is(Net.NetIsActive, 0)]]" raised>Reopen Net</paper-button>
+		</paper-material>
 	</div>
 	<!-- Dialogs -->
 		<logical-dialog id="Checkin" heading="Checkin" on-ld-enter="CheckinAddUpdate">
@@ -62,14 +134,6 @@
 			<paper-input label="Message" value="{{ChatMessage}}" autofocus></paper-input>
 			<paper-button on-tap="ChatMessageSend">Send</paper-button>
 		</logical-dialog>
-		<div id="ControlPanel">
-			<paper-material>
-				<h1>[[Net.NetTemplateName]]</h1>
-				<h2>[[Net.NetTemplateFrequency]] MHz</h2>
-				<h3>[[Net.NetDateDayName]] [[Net.NetTemplateTime]]</h3>
-			</paper-material>
-			<el-chat authed="[[SiteIsAuthed]]" net-id="[[Net.NetID]]" id="Chat"></el-chat>
-		</div>
 	</template>
 </dom-module>
 <script>
@@ -88,12 +152,14 @@
 		listeners: {
 			'sse-CheckinAdded': 'onSSECheckinAdded',
 			'sse-ChatMessage': 'onSSEChatMessage',
+			'sse-NetChanged': 'onSSENetChanged',
 			'ld-site-changed': 'SiteOnChange',
 		},
 
 
 		observers: [
 			'CheckinCallsignOnChange(Checkin.CallsignID)',
+			'HideFabSet(Net.*, Site.*)',
 		],
 
 
@@ -112,10 +178,14 @@
 				OfficialIDs: [],
 			};
 
+
 		},
 
 
+
 		attached: function() {
+
+			this.NoCheckins = true;
 
 			this.SiteOnChange();
 			if(LogicalApp.PageLocation.length < 2) {
@@ -123,7 +193,7 @@
 				LogicalApp.PageSet(['net', 'list'], true);
 			} else {
 				this.jaxson('multi',[
-					{request: 'Nets/NetInfo', NetURL: LogicalApp.PageLocation[1]},
+					{request: 'Nets/NetInfoFromURL', NetURL: LogicalApp.PageLocation[1]},
 					{request: 'Nets/OfficialsList'},
 				]);
 			}
@@ -175,6 +245,45 @@
 		},
 
 
+		HideFabSet: function() {
+
+			var HideFab = true;
+
+			if(this.Site) {
+				if(this.Site.SiteUser) {
+					if(this.Net) {
+						if(this.Site.SiteUser.CallsignID == this.Net.NetNCSCallsignID) {
+							HideFab = false;
+						}
+					}
+				}
+			}
+
+			this.HideFab = HideFab;
+		},
+		
+
+		NetInfoUpdate: function(event) {
+		
+			this.Net.NetIsActive = this.Net.NetIsActive == '1' ? 0 : 1;
+			this.Net.request = 'Nets/NetInfoUpdate';
+			this.jaxson('multi',[
+				this.Net,
+				{
+					request: 'Nets/NetInfo',
+					NetID: this.Net.NetID,
+				},
+				{
+					request: 'Nets/CheckinsListForNet',
+					NetID: this.Net.NetID,
+				},
+			]);
+
+			this.SSENetChangedSkip = true;
+		},
+		
+
+
 		SiteOnChange: function() {
 		
 			this.SiteIsAuthed = LogicalApp.Site.isAuthed;
@@ -200,6 +309,26 @@
 				this.$.Chat.ChatMessagesGet();
 		},
 		
+
+		onSSENetChanged: function(event) {
+
+			if(event.detail == this.Net.NetID) {
+				if(this.SSENetChangedSkip) {
+					this.SSENetChangedSkip = false;
+				} else {
+					this.jaxson('multi',[
+						{
+							request: 'Nets/NetInfo',
+							NetID: this.Net.NetID,
+						},
+						{
+							request: 'Nets/CheckinsListForNet',
+							NetID: this.Net.NetID,
+						},
+					]);
+				}
+			}
+		},
 
 
 		dialogSwitch: function(dialogID) {
@@ -246,16 +375,21 @@
 					this.dialogOpen('CheckinUpdate');
 				break;
 				case 'CheckinsListForNet':
+					console.log("info.Checkins", info.Checkins);
+					this.set('Net.CheckinsCount', info.Checkins.length);
 					this.Checkins = info.Checkins;
+					this.NoCheckins = this.Checkins.length < 1;
 				break;
 				case 'FCCCallsignInfo':
 					this.set('Checkin.CallsignName', info.FCCCallsign.FCCCallsignFirstNameFormatted);
 					this.set('Checkin.ZipCodeID', info.FCCCallsign.ZipCodeID);
 				break;
-				case 'NetInfo':
-					if(!info.Error) {
+				case 'NetInfoFromURL':
+					if(info.Net.NetID != undefined) {
+						info.Net.CheckinsCount = info.Checkins.length;
 						this.Net = info.Net;
 						this.Checkins = info.Checkins;
+						this.NoCheckins = this.Checkins.length < 1;
 						var HistoryState = window.history.state;
 						HistoryState.PageTitle = info.Net.NetTemplateName;
 						window.history.replaceState(HistoryState, HistoryState.PageTitle, HistoryState.PageURL);
@@ -266,6 +400,10 @@
 						LogicalApp.Toast('Net not found');
 						LogicalApp.PageSet(['net','list']);
 					}
+				break;
+				case 'NetInfo':
+					info.Net.CheckinsCount = this.Checkins.length;
+					this.Net = info.Net;
 				break;
 				case 'OfficialsList':
 					this.Officials = info.Officials;

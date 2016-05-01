@@ -1,3 +1,4 @@
+set foreign_key_checks=0;
 DROP TABLE IF EXISTS Checkins;
 DROP TABLE IF EXISTS Nets;
 DROP TABLE IF EXISTS NetTemplates;
@@ -39,6 +40,7 @@ CREATE TABLE Nets (
 	NetNCSCallsignID INT UNSIGNED,
 	NetStartDate DATETIME,
 	NetEndDate DATETIME,
+	NetIsActive BOOLEAN DEFAULT 1,
 	NetURL VARCHAR(64),
 	NetIsValid BOOLEAN DEFAULT 1,
 	PRIMARY KEY ( NetID ),
@@ -118,8 +120,9 @@ CREATE VIEW NetsView AS
 			Nets.NetTSU,
 			Nets.NetDate,
 			DAYNAME(Nets.NetDate) AS NetDateDayName,
-			DATE_FORMAT(Nets.NetDate, '%m-%d-%Y') AS NetDateFormatted,
+			DATE_FORMAT(CONCAT(Nets.NetDate, ' ', NetTemplatesView.NetTemplateTime), '%W %b %D %I:%i%p') AS NetDateFormatted,
 			Nets.NetNCSCallsignID,
+			Nets.NetIsActive,
 			Nets.NetStartDate,
 			Nets.NetEndDate,
 			Nets.NetURL,
@@ -128,6 +131,7 @@ CREATE VIEW NetsView AS
 			NetTemplatesView.*
 		FROM Nets
 		LEFT JOIN NetTemplatesView USING (NetTemplateID)
+		LEFT JOIN Checkins USING (NetID)
 		ORDER BY NetTemplateName;
 
 DROP VIEW IF EXISTS NetsList;
@@ -169,63 +173,70 @@ CREATE PROCEDURE CheckinAdd	(
 														)
 BEGIN
 
+	SET @Callsign = TRIM(IFNULL(_Callsign, ''));
 	CASE
-		WHEN _CallsignID IS NULL THEN
-			SELECT CallsignID INTO @CallsignID FROM CallsignsList WHERE Callsign LIKE _Callsign;
+		WHEN _CallsignID IS NOT NULL OR _Callsign != '' THEN
 			CASE
-				WHEN @CallsignID IS NULL THEN
-					INSERT INTO Callsigns (
-							Callsign, CallsignName, ZipCodeID
-						) VALUES (
-							UPPER(_Callsign), _CallsignName, _ZipCodeID
-						);
-					SELECT LAST_INSERT_ID() INTO @CallsignID;
+				WHEN _CallsignID IS NULL THEN
+					SELECT CallsignID INTO @CallsignID FROM CallsignsList WHERE Callsign LIKE @Callsign;
+					CASE
+						WHEN @CallsignID IS NULL THEN
+							INSERT INTO Callsigns (
+									Callsign, CallsignName, ZipCodeID
+								) VALUES (
+									UPPER(@Callsign), _CallsignName, _ZipCodeID
+								);
+							SELECT LAST_INSERT_ID() INTO @CallsignID;
+						ELSE
+							UPDATE Callsigns
+								SET
+										CallsignName = _CallsignName,
+										ZipCodeID = _ZipCodeID
+									WHERE CallsignID = @CallsignID;
+					END CASE;
 				ELSE
 					UPDATE Callsigns
 						SET
 								CallsignName = _CallsignName,
 								ZipCodeID = _ZipCodeID
-							WHERE CallsignID = @CallsignID;
+							WHERE CallsignID = _CallsignID;
+					SET @CallsignID = _CallsignID;
+			END CASE;
+
+
+			CASE
+				WHEN (SELECT COUNT(*) FROM CheckinsList WHERE CallsignID = @CallsignID AND NetID = _NetID) > 0 THEN
+					SET @Error = 'Callsign already checked in';
+				ELSE
+
+					DELETE FROM OfficialCallsigns WHERE CallsignID = @CallsignID;
+
+					add_officials:
+						LOOP
+							IF _OfficialIDsCSL = '' OR _OfficialIDsCSL = ',' OR _OfficialIDsCSL IS NULL THEN
+								LEAVE add_officials;
+							END IF;
+							SET @OfficialID = SUBSTRING_INDEX(_OfficialIDsCSL, ',', 1);
+							SET _OfficialIDsCSL = SUBSTRING(_OfficialIDsCSL, CHAR_LENGTH(@OfficialID) + 2);
+							INSERT INTO OfficialCallsigns (
+									OfficialID, CallsignID
+								) VALUES (
+									@OfficialID, @CallsignID
+								);
+						END LOOP add_officials;
+
+					SET @Error = 'NONE';
+					INSERT INTO Checkins (
+							NetID, CallsignID
+						) VALUES (
+							_NetID, @CallsignID
+						);
+					CALL EventAdd(10, _NetID);
 			END CASE;
 		ELSE
-			UPDATE Callsigns
-				SET
-						CallsignName = _CallsignName,
-						ZipCodeID = _ZipCodeID
-					WHERE CallsignID = _CallsignID;
-			SET @CallsignID = _CallsignID;
+			SET @Error = 'Cannot checkin empty callsign';
 	END CASE;
 
-
-	CASE
-		WHEN (SELECT COUNT(*) FROM CheckinsList WHERE CallsignID = @CallsignID AND NetID = _NetID) > 0 THEN
-			SET @Error = 'Callsign already checked in';
-		ELSE
-
-			DELETE FROM OfficialCallsigns WHERE CallsignID = @CallsignID;
-
-			add_officials:
-				LOOP
-					IF _OfficialIDsCSL = '' OR _OfficialIDsCSL = ',' OR _OfficialIDsCSL IS NULL THEN
-						LEAVE add_officials;
-					END IF;
-					SET @OfficialID = SUBSTRING_INDEX(_OfficialIDsCSL, ',', 1);
-					SET _OfficialIDsCSL = SUBSTRING(_OfficialIDsCSL, CHAR_LENGTH(@OfficialID) + 2);
-					INSERT INTO OfficialCallsigns (
-							OfficialID, CallsignID
-						) VALUES (
-							@OfficialID, @CallsignID
-						);
-				END LOOP add_officials;
-
-			SET @Error = 'NONE';
-			INSERT INTO Checkins (
-					NetID, CallsignID
-				) VALUES (
-					_NetID, @CallsignID
-				);
-			CALL EventAdd(10, _NetID);
-	END CASE;
 
 END//
 DELIMITER ;
@@ -302,7 +313,11 @@ BEGIN
 	SELECT
 			*
 		FROM CheckinsList
-		WHERE NetID = _NetID;
+		LEFT JOIN Nets USING (NetID)
+		WHERE NetID = _NetID
+		ORDER BY
+			CASE WHEN Nets.NetIsActive THEN CheckinID END DESC,
+			CASE WHEN !Nets.NetIsActive THEN CheckinID END ASC;
 END//
 DELIMITER ;
 
@@ -388,25 +403,46 @@ DELIMITER ;
 
 DROP PROCEDURE IF EXISTS NetInfo;
 DELIMITER //
-CREATE PROCEDURE NetInfo	( IN _NetURL VARCHAR(64) )
+CREATE PROCEDURE NetInfo	( IN _NetID INT UNSIGNED )
 BEGIN
 
-	SELECT NetID INTO @NetID FROM NetsList WHERe NetURL LIKE _NetURL;
-
-	DROP TABLE IF EXISTS _Net;
-	CREATE TEMPORARY TABLE _Net AS
 		SELECT
 				*
 			FROM NetsList
-			WHERE NetID = @NetID;
+			WHERE NetID LIKE _NetID;
 
-	DROP TABLE IF EXISTS _Checkins;
-	CREATE TEMPORARY TABLE _Checkins AS
+END//
+DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS NetInfoFromURL;
+DELIMITER //
+CREATE PROCEDURE NetInfoFromURL	( IN _NetURL VARCHAR(64) )
+BEGIN
+
 		SELECT
 				*
-			FROM CheckinsList
-			WHERE NetID = @NetID;
+			FROM NetsList
+			WHERE NetURL LIKE _NetURL;
 
+END//
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS NetInfoUpdate;
+DELIMITER //
+CREATE PROCEDURE NetInfoUpdate	(
+																	IN _NetID INT UNSIGNED,
+																	IN _NetIsActive BOOLEAN
+																)
+BEGIN
+	UPDATE Nets
+		SET
+				NetIsActive = _NetIsActive
+			WHERE NetID = _NetID;
+
+	CALL EventAdd(20, _NetID);
 
 END//
 DELIMITER ;
@@ -425,3 +461,4 @@ INSERT INTO NetTypes (NetTypeID, NetType)
 
 
 
+set foreign_key_checks=1;

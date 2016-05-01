@@ -59,7 +59,12 @@ class Nets {
 
 		$stm = \Jaxson::$db->prepare("CALL CheckinsListForNet ( :NetID )");
 		$stm->execute([':NetID' => \Jaxson::$data->NetID]);
-		\Jaxson::$response['Checkins'] = $stm->fetchAll();
+
+		$Checkins = $stm->fetchAll();
+		foreach ($Checkins as &$Checkin) {
+			$Checkin['OfficialTitles'] = explode(', ', $Checkin['OfficialTitles']);
+		}
+		\Jaxson::$response['Checkins'] = $Checkins;
 	}
 	
 
@@ -86,22 +91,41 @@ class Nets {
 	}
 	
 
+	public static function NetInfoUpdate() {
+
+		$stm = \Jaxson::$db->prepare("CALL NetInfoUpdate( :NetID, :NetIsActive )");
+		$stm->execute([
+			':NetID' => \Jaxson::$data->NetID,
+			':NetIsActive' => \Jaxson::$data->NetIsActive,
+		]);
+	}
+	
+
+
 	public static function NetInfo() {
 
-		$stm = \Jaxson::$db->prepare("CALL NetInfo ( :NetURL )");
+		$stm = \Jaxson::$db->prepare("CALL NetInfo ( :NetID )");
+		$stm->execute([
+			':NetID' => \Jaxson::$data->NetID,
+		]);
+
+		\Jaxson::$response["Net"] = $stm->fetch();
+	}
+	
+
+
+	public static function NetInfoFromURL() {
+
+		$stm = \Jaxson::$db->prepare("CALL NetInfoFromURL ( :NetURL )");
 		$stm->execute([
 			':NetURL' => \Jaxson::$data->NetURL,
 		]);
 
-		$Net = \Jaxson::$db->query("SELECT * FROM _Net")->fetch();
-		$Checkins = \Jaxson::$db->query("SELECT * FROM _Checkins")->fetchAll();
-
-		if($Net) {
-			\Jaxson::$response['Net'] = $Net;
-			\Jaxson::$response['Checkins'] = $Checkins;
-		} else {
-			\Jaxson::$response['Error'] = "Net not found";
-		}
+		$Net = $stm->fetch();
+		$stm = false;
+		\Jaxson::$data->NetID = $Net['NetID'];
+		self::CheckinsListForNet();
+		\Jaxson::$response["Net"] = $Net;
 
 	}
 	

@@ -29,6 +29,22 @@
 				</template>
 			</iron-list>
 		</div>
+	<!-- Control Panel -->
+		<div id="ControlPanel">
+		<!-- Quick Links -->
+			<paper-material>
+				<h1>Quick Links</h1>
+				<ul>
+					<li><a href="/home" on-click="PageLink">Home</a></li>
+					<li><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
+					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
+				</ul>
+			</paper-material>
+		<!-- NCS Buttons -->
+			<paper-material hidden="[[!Site.isAuthed]]" class="flex-box around">
+				<paper-button on-tap="dialog" data-dialog="Net" raised>Start Net</paper-button>
+			</paper-material>
+		</div>
 	<!-- Dialogs -->
 		<!-- DNet -->
 		<logical-dialog id="Net" heading="Start a Net">
@@ -72,22 +88,6 @@
 				<paper-spinner active="[[DialogLoading]]" class=""></paper-spinner>
 			</div>
 		</logical-dialog>
-
-
-	<!-- Control Panel -->
-		<div id="ControlPanel">
-			<paper-material>
-				<h1>Quick Links</h1>
-				<ul>
-					<li><a href="/home" on-click="PageLink">Home</a></li>
-					<li><a href="http://wp.ni4ce.org" target="_blank">NI4CE.org</a></li>
-					<li><a href="http://arrl.org" target="_blank">ARRL.org</a></li>
-				</ul>
-			</paper-material>
-			<paper-material hidden="[[!Site.isAuthed]]" class="flex-box around">
-				<paper-button on-tap="dialog" data-dialog="Net" raised>Start Net</paper-button>
-			</paper-material>
-		</div>
 	</template>
 </dom-module>
 <script>
@@ -103,6 +103,10 @@
 		behaviors: [
 			Polymer.LogicalPageBehaviors,
 		],
+
+		listeners: {
+			'sse-NetChanged': 'onSSENetChanged',
+		},
 
 
 		observers: [
@@ -135,6 +139,12 @@
 			this.jaxson('Nets/NetsList');
 		},
 			
+
+		onSSENetChanged: function() {
+		
+			this.jaxson('Nets/NetsList');
+		},
+		
 
 		NetNewOnChanged: function(info) {
 		
@@ -182,6 +192,9 @@
 
 		dialogSwitch: function(dialogID) {
 		
+			if(LogicalApp.$.DrawerPanel.narrow) {
+				LogicalApp.$.DrawerPanel.closeDrawer();
+			}
 			switch(dialogID) {
 				case 'NetTemplate':
 					this.NetTemplateNew = {

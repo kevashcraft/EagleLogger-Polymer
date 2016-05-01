@@ -166,7 +166,14 @@
 
 		SiteUserInfoUpdate: function() {
 		
-			this.jaxson('Site/SiteUserInfoUpdate', this.SiteUser);
+			this.SiteUser.request = 'Site/SiteUserInfoUpdate';
+			this.jaxson('multi', [
+				this.SiteUser,
+				{
+					request: 'Site/SiteUserInfo',
+					SiteUserID: this.SiteUser.SiteUserID,
+				}
+			]);
 		},
 		
 
@@ -273,6 +280,11 @@
 		_jaxson: function(info) {
 		
 			switch(info.request) {
+				case 'SiteUserInfo':
+					var Site = this._copy(LogicalApp.Site);
+					Site.SiteUser = info.SiteUser;
+					LogicalApp.Site = Site;
+				break;
 				case 'SiteUserLogin':
 					if(info.Success == 1) {
 						var Site = this._copy(LogicalApp.Site);

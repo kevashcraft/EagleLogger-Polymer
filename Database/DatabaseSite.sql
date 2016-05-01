@@ -255,6 +255,7 @@ BEGIN
 			SiteUsers.SiteUserID,
 			SiteUsers.SiteUserTypeID,
 			SiteUserTypes.SiteUserType,
+			Callsigns.CallsignID,
 			Callsigns.Callsign,
 			Callsigns.CallsignName,
 			Callsigns.CallsignRadio,

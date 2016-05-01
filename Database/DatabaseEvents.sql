@@ -53,4 +53,5 @@ DELIMITER ;
 
 -- EVENT TYPES
 INSERT INTO EventTypes ( EventTypeID, EventType ) VALUES ( 10, 'CheckinAdded' );
+INSERT INTO EventTypes ( EventTypeID, EventType ) VALUES ( 20, 'NetChanged' );
 INSERT INTO EventTypes ( EventTypeID, EventType ) VALUES ( 80, 'ChatMessage' );
