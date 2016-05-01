@@ -1,2 +1,4 @@
 bower_components
 Database/data/import/tmp
+prod/index.html
+prod/Database.sql

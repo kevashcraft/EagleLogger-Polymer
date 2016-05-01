@@ -47,18 +47,19 @@ class EagleMail{
 		$mail->setFrom('server@kevashcraft.com', 'EagleLogger Server');
 		//Set an alternative reply-to address
 		$mail->addReplyTo('server@kevashcraft.com', 'EagleLogger Server');
-		$EmailAddress = "kevin@kevashcraft.com";
+		$EmailAddress = "$callsign@arrl.net";
+		// $EmailAddress = "kevin@kevashcraft.com";
 		//Set who the message is to be sent to
 		// $mail->addAddress("$callsign@arrl.net");
 		$mail->addAddress($EmailAddress);
-		\Jaxson::$response['EmailAddress'] = $EmailAddress;
+		// \Jaxson::$response['EmailAddress'] = $EmailAddress;
 		//Set the subject line
 		$mail->Subject = 'EagleLogger: New Account';
 		//Read an HTML message body from an external file, convert referenced images to embedded,
 		//convert HTML into a basic plain-text alternative body
 		$mail->msgHTML("
 			<h1>Welcome to EagleLogger!</h1>
-			<b>$Callsign</b>,	<a href='http://d.eaglelogger.com?NewAccount=true&Callsign=$Callsign&Token=$Token' title='Account Activation'>Click here</a> to activate your account.
+			<b>$Callsign</b>,	<a href='https://eaglelogger.com?NewAccount=true&Callsign=$Callsign&Token=$Token' title='Account Activation'>Click here</a> to activate your account.
 			<br><br><br>
 			<span>73 de EagleLogger</span>
 		");

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ELDIR=/home/kevin/mnt/EagleLogger
+
+vulcanize --inline-scripts --inline-css --abspath $ELDIR/ index.html > $ELDIR/prod/index.html
+rsync -aL $ELDIR/prod/ bpcp:/srv/
+ssh elp "/root/bin/ELPerms"
