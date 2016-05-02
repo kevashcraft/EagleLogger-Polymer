@@ -3,5 +3,6 @@
 ELDIR=/home/kevin/mnt/EagleLogger
 
 vulcanize --inline-scripts --inline-css --abspath $ELDIR/ index.html > $ELDIR/prod/index.html
-rsync -aL $ELDIR/prod/ bpcp:/srv/
+rsync -aLzvv --delete $ELDIR/prod/ elp:/srv/
+rsync -azvv $ELDIR/Database/ elp:/root/Database/
 ssh elp "/root/bin/ELPerms"

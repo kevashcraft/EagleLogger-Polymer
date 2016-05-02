@@ -286,7 +286,7 @@ BEGIN
 				CallsignRadio = _CallsignRadio,
 				CallsignAntenna = _CallsignAntenna,
 				SiteUserPasswordHash = IF(_SiteUserPasswordHash = 'unchangedpassword', SiteUserPasswordHash, _SiteUserPasswordHash)
-			WHERE SiteUserID = SiteUserID;
+			WHERE SiteUserID = _SiteUserID;
 
 END//
 DELIMITER ;

@@ -131,7 +131,6 @@ CREATE VIEW NetsView AS
 			NetTemplatesView.*
 		FROM Nets
 		LEFT JOIN NetTemplatesView USING (NetTemplateID)
-		LEFT JOIN Checkins USING (NetID)
 		ORDER BY NetTemplateName;
 
 DROP VIEW IF EXISTS NetsList;
